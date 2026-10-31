@@ -45,7 +45,7 @@ export async function CatalogHealth() {
   const hidden = catalog.filter((p) => !p.visible).length;
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
       <Tile label="À venda na loja" value={`${onSale} de ${catalog.length}`} href="/admin/produtos" />
       <Tile label="Unidades em stock" value={units} />
       <Tile label="Valor do stock (preço de venda)" value={formatEur(stockValue)} />

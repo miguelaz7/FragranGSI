@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { refresh, updateTag } from "next/cache";
 import { db } from "@/lib/db";
-import { savePhoto } from "@/lib/photos";
+import { findPhotoFor, savePhoto } from "@/lib/photos";
 import { CONCENTRATIONS, GENDERS } from "@/lib/product-options";
 
 // Ações da aba Produtos. Só escrevem na BD local (ficha da loja): o nome,
@@ -58,6 +58,12 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
     } catch (e) {
       return { ok: false, message: (e as Error).message, errors: { photo: (e as Error).message } };
     }
+  }
+
+  // Sem foto enviada e sem foto na ficha: usa a foto com o nome do código, se existir
+  if (!imageUrl) {
+    const current = await db.productInfo.findUnique({ where: { sapProduct }, select: { imageUrl: true } });
+    if (!current?.imageUrl) imageUrl = (await findPhotoFor(sapProduct)) ?? undefined;
   }
 
   await db.productInfo.upsert({

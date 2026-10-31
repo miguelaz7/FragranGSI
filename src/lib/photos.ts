@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 // Fotos dos produtos enviadas pelo backoffice. Ficam em uploads/produtos/
@@ -28,4 +28,20 @@ export async function savePhoto(file: File, sapProduct: string) {
   await mkdir(PHOTO_DIR, { recursive: true });
   await writeFile(path.join(PHOTO_DIR, name), Buffer.from(await file.arrayBuffer()));
   return `/fotos/${name}`;
+}
+
+/**
+ * Foto já existente com o nome do código (ex.: uploads/produtos/PERF002-093.png,
+ * as fotos do design). Usada quando se guarda uma ficha sem enviar foto.
+ */
+export async function findPhotoFor(sapProduct: string) {
+  for (const ext of Object.values(PHOTO_TYPES)) {
+    const name = `${sapProduct}.${ext}`;
+    if (!SAFE_NAME.test(name)) return null;
+    try {
+      await access(path.join(PHOTO_DIR, name));
+      return `/fotos/${name}`;
+    } catch {}
+  }
+  return null;
 }

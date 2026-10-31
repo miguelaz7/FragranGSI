@@ -7,6 +7,7 @@ import { AdminNavLink } from "./AdminNavLink";
 // Secções do backoffice. As que ainda não existem aparecem desativadas.
 const items = [
   { href: "/admin", label: "Dashboard", ready: true },
+  { href: "/admin/analista", label: "Analista IA", ready: true },
   { href: "/admin/produtos", label: "Produtos", ready: true },
   { href: "/admin/encomendas", label: "Encomendas", ready: false },
   { href: "/admin/clientes", label: "Clientes", ready: false },

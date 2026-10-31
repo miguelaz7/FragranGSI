@@ -29,6 +29,7 @@ model User {
 
   cart      Cart?
   orders    Order[]
+  isDemo    Boolean    @default(false) // cliente fictício dos dados de demonstração
   createdAt DateTime   @default(now())
 }
 
@@ -84,7 +85,10 @@ model Order {
   moloniDocumentNo String? // ex.: "FR 2026/215"
 
   items     OrderItem[]
+  isDemo    Boolean     @default(false) // encomenda fictícia (dados de demonstração)
   createdAt DateTime    @default(now())
+
+  @@index([createdAt])
 }
 
 model OrderItem {

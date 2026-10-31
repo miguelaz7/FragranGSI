@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 
-export type System = "SAP" | "Moloni";
+export type System = "SAP" | "Moloni" | "IA";
 
 // Erro com uma mensagem pensada para mostrar ao utilizador/admin.
 export class IntegrationError extends Error {

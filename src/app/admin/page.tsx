@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getCatalog } from "@/lib/catalog";
 import { dayKey, formatDayMonth, formatEur, formatLongDate, timeAgo } from "@/lib/format";
 import { SalesChart } from "@/components/admin/SalesChart";
+import { DemoDataNotice } from "@/components/admin/DemoDataNotice";
 import { CartsPanel, CatalogHealth, IntegrationHealth } from "@/components/admin/DashboardPanels";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -75,7 +76,11 @@ async function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+      <Suspense>
+        <DemoDataNotice offerCreate />
+      </Suspense>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
         <div className={card}>
           <span className={cardLabel}>Vendas hoje</span>
           <span className={cardValue}>{formatEur(salesToday)}</span>
