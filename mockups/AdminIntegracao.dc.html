@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Backoffice — Monitor de integração</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7A5C24}a:hover{color:#5C4419}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F7F6F3; color: #1A1917; font-family: 'Manrope', sans-serif; display: flex; flex-wrap: wrap">
+<nav aria-label="Backoffice" style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; background: #12110F; color: #EFE9DF; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 22px; letter-spacing: 0.02em; padding: 0 12px 4px">fragran<span style="color: #C9A96E">GSI</span></span>
+<span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C; padding: 0 12px 24px">Backoffice</span>
+<a href="AdminDashboard.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Dashboard</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Produtos</a>
+<a href="AdminEncomendas.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Encomendas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Clientes</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Faturas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Devoluções</a>
+<a href="AdminIntegracao.dc.html" aria-current="page" style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; background: #2A2620; color: #EFE9DF; font-size: 14px; font-weight: 600; text-decoration: none">Integração<span style="min-width: 22px; height: 22px; border-radius: 11px; background: #F2B8B5; color: #5C0F0B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{errCount}}</span></a>
+<a href="Main.dc.html" style="margin-top: 24px; display: flex; align-items: center; height: 44px; padding: 0 12px; color: #A39A8C; font-size: 13px; text-decoration: none">↗ Ver loja</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px clamp(16px, 3vw, 40px); box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 700">Monitor de integração</h1>
+<span style="font-size: 14px; color: #5F5B54">Cada chamada da loja ao SAP e ao Moloni fica registada aqui.</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">SAP S/4HANA</span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1F7A4D"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1F7A4D"></span>Ligado</span></div>
+<span style="font-size: 13px; color: #5F5B54">OData v2 · 5 serviços</span>
+<span style="font-size: 13px; color: #5F5B54">Catálogo e stock sincronizados há 2 min</span>
+<button type="button" style="align-self: flex-start; height: 40px; padding: 0 14px; border: 1px solid #D4D0C8; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Sincronizar agora</button>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">Moloni</span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1F7A4D"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1F7A4D"></span>Ligado</span></div>
+<span style="font-size: 13px; color: #5F5B54">API REST · OAuth2</span>
+<span style="font-size: 13px; color: #5F5B54">Token renovado automaticamente · expira em 47 min</span>
+<button type="button" style="align-self: flex-start; height: 40px; padding: 0 14px; border: 1px solid #D4D0C8; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">Testar ligação</button>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 16px; font-weight: 700">Assistente IA</span><span style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1F7A4D"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1F7A4D"></span>Ligado</span></div>
+<span style="font-size: 13px; color: #5F5B54">API Route /api/recomendar</span>
+<span style="font-size: 13px; color: #5F5B54">38 pedidos hoje</span>
+</div>
+</div>
+
+<div role="tablist" aria-label="Filtrar registos" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid {{t.border}}; background: {{t.bg}}; color: {{t.fg}}; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-label="Registo de chamadas" style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E1DB; overflow-x: auto">
+<div style="min-width: 720px; display: flex; flex-direction: column; font-size: 14px">
+<div style="display: grid; grid-template-columns: 0.7fr 0.8fr 2.4fr 0.9fr 0.9fr 0.6fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #E4E1DB; color: #5F5B54; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em">
+<span>Hora</span><span>Sistema</span><span>Operação</span><span>Referência</span><span>Estado</span><span>Tempo</span>
+</div>
+<sc-for list="{{logs}}" as="l" hint-placeholder-count="10">
+<button type="button" onClick="{{l.pick}}" aria-pressed="{{l.sel}}" style="display: grid; grid-template-columns: 0.7fr 0.8fr 2.4fr 0.9fr 0.9fr 0.6fr; gap: 8px; align-items: center; padding: 12px 16px; border: 0; border-bottom: 1px solid #E4E1DB; background: {{l.rowBg}}; text-align: left; font-family: inherit; font-size: 14px; color: #1A1917; cursor: pointer">
+<span style="font-family: ui-monospace, monospace; font-size: 13px">{{l.time}}</span>
+<span style="font-weight: 600">{{l.sys}}</span>
+<span style="font-family: ui-monospace, monospace; font-size: 13px">{{l.op}}</span>
+<span>{{l.ref}}</span>
+<span><span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{l.stBg}}; color: {{l.stFg}}">{{l.status}}</span></span>
+<span style="color: #5F5B54">{{l.ms}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<aside aria-label="Detalhe do registo" style="flex: 1 1 320px; background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px">
+<h2 style="margin: 0; font-size: 18px; font-weight: 700">{{cur.sys}} · {{cur.ref}}</h2>
+<span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{cur.stBg}}; color: {{cur.stFg}}">{{cur.status}}</span>
+</div>
+<span style="font-family: ui-monospace, monospace; font-size: 13px; color: #5F5B54">{{cur.op}}</span>
+<span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #5F5B54">Resposta</span>
+<pre style="margin: 0; padding: 14px; background: #12110F; color: #EFE9DF; font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.55; white-space: pre-wrap; word-break: break-word">{{cur.body}}</pre>
+<span style="font-size: 13px; line-height: 1.5; color: #5F5B54">{{cur.hint}}</span>
+<sc-if value="{{cur.canRetry}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{retry}}" style="height: 46px; background: #1A1917; color: #FFFFFF; border: 0; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer">Tentar novamente</button>
+</sc-if>
+<sc-if value="{{cur.isOrder}}" hint-placeholder-val="{{ false }}">
+<a href="AdminEncomendas.dc.html" style="font-size: 13px">Abrir encomenda {{cur.ref}}</a>
+</sc-if>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'Todos', sel: 'l3', fixed: {} };
+  }
+  renderVals() {
+    const S = {
+      OK: ['#DDF0E4', '#14532D'],
+      Erro: ['#F9DEDC', '#8C1D18'],
+      Resolvido: ['#DCE8F7', '#163E6C']
+    };
+    const base = [
+      { id: 'l1', time: '11:52:14', sys: 'Moloni', op: 'POST invoices/insert', ref: '#1048', st: 'OK', ms: '412 ms', body: '{ "valid": 1, "document_id": 9182344 }', hint: 'Fatura-recibo FR 2026/215 emitida.' },
+      { id: 'l2', time: '11:52:13', sys: 'Moloni', op: 'POST customers/insert', ref: '#1048', st: 'OK', ms: '298 ms', body: '{ "valid": 1, "customer_id": 88213 }', hint: 'Cliente criado no Moloni e associado ao BP 1000412.' },
+      { id: 'l3', time: '10:31:40', sys: 'Moloni', op: 'POST customers/insert', ref: '#1047', st: 'Erro', ms: '233 ms', body: '{\n  "valid": 0,\n  "errors": [\n    { "field": "vat", "message": "NIF inválido" }\n  ]\n}', hint: 'O NIF indicado pelo cliente não é válido. Corrija-o na ficha do cliente e tente novamente; a fatura é emitida a seguir.', order: true },
+      { id: 'l4', time: '10:31:39', sys: 'SAP', op: 'POST C_BusinessPartnerActivation', ref: '#1047', st: 'OK', ms: '1,2 s', body: '{ "BusinessPartner": "1000411", "IsActiveEntity": true }', hint: 'Business Partner ativado no SAP.', order: true },
+      { id: 'l5', time: '10:31:37', sys: 'SAP', op: 'POST C_BusinessPartner (rascunho)', ref: '#1047', st: 'OK', ms: '860 ms', body: '{ "IsActiveEntity": false, "HasDraftEntity": false }', hint: 'Rascunho do cliente criado; segue-se a preparação e a ativação.', order: true },
+      { id: 'l6', time: '10:15:02', sys: 'SAP', op: 'GET C_STOCKQUANTITYVALUEBYTYPE', ref: 'Sync stock', st: 'Erro', ms: '30,0 s', body: '{ "error": "timeout após 30 s" }', hint: 'O SAP não respondeu a tempo. A loja continuou a mostrar o último stock conhecido.' },
+      { id: 'l7', time: '10:00:01', sys: 'SAP', op: 'GET UI_PRODUCTLIST?$top=50&$skip=0', ref: 'Sync catálogo', st: 'OK', ms: '1,8 s', body: '{ "d": { "results": [ … 50 produtos ] } }', hint: 'Catálogo sincronizado.' },
+      { id: 'l8', time: '09:58:47', sys: 'Moloni', op: 'POST grant (refresh_token)', ref: 'Token', st: 'OK', ms: '190 ms', body: '{ "expires_in": 3600 }', hint: 'Token de acesso renovado.' }
+    ];
+    const logs0 = base.map((l) => {
+      const st = this.state.fixed[l.id] ? 'Resolvido' : l.st;
+      return { ...l, status: st };
+    });
+    const errCount = logs0.filter((l) => l.status === 'Erro').length;
+    const filters = ['Todos', 'Erros', 'SAP', 'Moloni'];
+    const tabs = filters.map((f) => {
+      const on = this.state.filter === f;
+      const label = f === 'Erros' ? 'Erros (' + errCount + ')' : f;
+      return {
+        label,
+        sel: on ? 'true' : 'false',
+        bg: on ? '#1A1917' : '#FFFFFF',
+        fg: on ? '#FFFFFF' : '#1A1917',
+        border: on ? '#1A1917' : '#D4D0C8',
+        pick: () => this.setState({ filter: f })
+      };
+    });
+    const f = this.state.filter;
+    const logs = logs0
+      .filter((l) => f === 'Todos' || (f === 'Erros' ? l.status === 'Erro' : l.sys === f))
+      .map((l) => ({
+        ...l,
+        sel: this.state.sel === l.id ? 'true' : 'false',
+        rowBg: this.state.sel === l.id ? '#F3EEE3' : '#FFFFFF',
+        stBg: S[l.status][0],
+        stFg: S[l.status][1],
+        pick: () => this.setState({ sel: l.id })
+      }));
+    const c = logs0.find((l) => l.id === this.state.sel) || logs0[0];
+    const cur = {
+      ...c,
+      stBg: S[c.status][0],
+      stFg: S[c.status][1],
+      canRetry: c.status === 'Erro',
+      isOrder: !!c.order,
+      body: c.status === 'Resolvido' ? '{ "valid": 1 }' : c.body,
+      hint: c.status === 'Resolvido' ? 'Nova tentativa concluída com sucesso.' : c.hint
+    };
+    return {
+      tabs,
+      logs,
+      cur,
+      errCount,
+      retry: () => this.setState({ fixed: { ...this.state.fixed, [c.id]: true } })
+    };
+  }
+}
+</script>
+</body>
+</html>

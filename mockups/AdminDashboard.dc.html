@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Backoffice — Dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7A5C24}a:hover{color:#5C4419}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F7F6F3; color: #1A1917; font-family: 'Manrope', sans-serif; display: flex; flex-wrap: wrap">
+<nav aria-label="Backoffice" style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; background: #12110F; color: #EFE9DF; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 22px; letter-spacing: 0.02em; padding: 0 12px 4px">fragran<span style="color: #C9A96E">GSI</span></span>
+<span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C; padding: 0 12px 24px">Backoffice</span>
+<a href="AdminDashboard.dc.html" aria-current="page" style="display: flex; align-items: center; height: 44px; padding: 0 12px; background: #2A2620; color: #EFE9DF; font-size: 14px; font-weight: 600; text-decoration: none">Dashboard</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Produtos</a>
+<a href="AdminEncomendas.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Encomendas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Clientes</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Faturas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Devoluções</a>
+<a href="AdminIntegracao.dc.html" style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Integração<span style="min-width: 22px; height: 22px; border-radius: 11px; background: #F2B8B5; color: #5C0F0B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span></a>
+<a href="Main.dc.html" style="margin-top: 24px; display: flex; align-items: center; height: 44px; padding: 0 12px; color: #A39A8C; font-size: 13px; text-decoration: none">↗ Ver loja</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px clamp(16px, 3vw, 40px); box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 700">Dashboard</h1>
+<span style="font-size: 14px; color: #5F5B54">Quinta-feira, 29 de outubro</span>
+</div>
+<span style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #5F5B54"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1F7A4D"></span>SAP e Moloni ligados · última sincronização há 2 min</span>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #5F5B54">Vendas hoje</span><span style="font-size: 30px; font-weight: 700">1 284,00 €</span><span style="font-size: 13px; color: #1F7A4D">▲ 12% vs. ontem</span></div>
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #5F5B54">Encomendas por enviar</span><span style="font-size: 30px; font-weight: 700">7</span><a href="AdminEncomendas.dc.html" style="font-size: 13px">Ver encomendas</a></div>
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #5F5B54">Faturas emitidas hoje</span><span style="font-size: 30px; font-weight: 700">15</span><span style="font-size: 13px; color: #5F5B54">via Moloni</span></div>
+<div style="background: #FFFFFF; border: 1px solid #E4E1DB; border-top: 3px solid #B3261E; padding: 22px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; color: #5F5B54">Erros de integração</span><span style="font-size: 30px; font-weight: 700; color: #B3261E">2</span><a href="AdminIntegracao.dc.html" style="font-size: 13px">Rever e tentar novamente</a></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px">
+<section aria-labelledby="vendas7" style="flex: 2 1 420px; background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 20px">
+<h2 id="vendas7" style="margin: 0; font-size: 16px; font-weight: 700">Vendas dos últimos 7 dias</h2>
+<div role="img" aria-label="Gráfico de barras das vendas diárias, de 23 a 29 de outubro" style="height: 220px; display: flex; align-items: flex-end; gap: 14px; border-bottom: 1px solid #E4E1DB">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end">
+<span style="font-size: 11px; color: #5F5B54">{{d.value}}</span>
+<div style="width: 100%; max-width: 44px; height: {{d.h}}; background: {{d.color}}; border-radius: 3px 3px 0 0"></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 14px; margin-top: -10px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<span style="flex: 1 1 0; text-align: center; font-size: 12px; color: #5F5B54">{{d.label}}</span>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="stockbaixo" style="flex: 1 1 280px; background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="stockbaixo" style="margin: 0; font-size: 16px; font-weight: 700">Stock baixo (SAP)</h2>
+<sc-for list="{{lowStock}}" as="s" hint-placeholder-count="4">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid #E4E1DB; font-size: 14px">
+<span>{{s.name}}</span>
+<span style="font-weight: 700; color: {{s.color}}">{{s.qty}}</span>
+</div>
+</sc-for>
+</section>
+</div>
+
+<section aria-labelledby="ultimas" style="background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h2 id="ultimas" style="margin: 0; font-size: 16px; font-weight: 700">Últimas encomendas</h2>
+<a href="AdminEncomendas.dc.html" style="font-size: 13px">Ver todas</a>
+</div>
+<div style="overflow-x: auto">
+<div style="min-width: 640px; display: flex; flex-direction: column; font-size: 14px">
+<div style="display: grid; grid-template-columns: 1fr 1.6fr 1fr 1fr 1.4fr; gap: 8px; padding: 10px 8px; border-bottom: 1px solid #E4E1DB; color: #5F5B54; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em">
+<span>Encomenda</span><span>Cliente</span><span>Total</span><span>Estado</span><span>Fatura</span>
+</div>
+<sc-for list="{{orders}}" as="o" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 1fr 1.6fr 1fr 1fr 1.4fr; gap: 8px; align-items: center; padding: 12px 8px; border-bottom: 1px solid #E4E1DB">
+<span style="font-weight: 600">{{o.id}}</span>
+<span>{{o.client}}</span>
+<span>{{o.total}}</span>
+<span><span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{o.stBg}}; color: {{o.stFg}}">{{o.status}}</span></span>
+<span style="color: {{o.invColor}}">{{o.invoice}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const vals = [620, 890, 540, 1120, 980, 1460, 1284];
+    const labels = ['23/10', '24/10', '25/10', '26/10', '27/10', '28/10', 'Hoje'];
+    const max = 1460;
+    const days = vals.map((v, i) => ({
+      label: labels[i],
+      value: v + ' €',
+      h: Math.round((v / max) * 170) + 'px',
+      color: i === 6 ? '#8A6A2F' : '#D9CBB0'
+    }));
+    const st = {
+      Pendente: ['#FDF0D5', '#6B4500'],
+      Enviada: ['#DCE8F7', '#163E6C'],
+      Entregue: ['#DDF0E4', '#14532D']
+    };
+    const mk = (id, client, total, status, invoice, failed) => ({
+      id, client, total, status, invoice,
+      stBg: st[status][0], stFg: st[status][1],
+      invColor: failed ? '#B3261E' : '#1A1917'
+    });
+    return {
+      days,
+      lowStock: [
+        { name: 'Flor de Sal · 50 ml', qty: '3 un.', color: '#9A5B00' },
+        { name: 'Oud Dourado · 50 ml', qty: '2 un.', color: '#9A5B00' },
+        { name: 'Couro & Tabaco · 50 ml', qty: '4 un.', color: '#9A5B00' },
+        { name: 'Íris Pó · 50 ml', qty: 'Esgotado', color: '#B3261E' }
+      ],
+      orders: [
+        mk('#1048', 'Ana Silva', '153,00 €', 'Pendente', 'FR 2026/215', false),
+        mk('#1047', 'João Costa', '72,00 €', 'Pendente', 'Falhou — rever', true),
+        mk('#1046', 'Marta Rocha', '177,00 €', 'Enviada', 'FR 2026/214', false),
+        mk('#1045', 'Rui Ferreira', '89,00 €', 'Entregue', 'FR 2026/213', false),
+        mk('#1044', 'Inês Lopes', '64,00 €', 'Entregue', 'FR 2026/212', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

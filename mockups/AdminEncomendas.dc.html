@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Backoffice — Encomendas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7A5C24}a:hover{color:#5C4419}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F7F6F3; color: #1A1917; font-family: 'Manrope', sans-serif; display: flex; flex-wrap: wrap">
+<nav aria-label="Backoffice" style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; background: #12110F; color: #EFE9DF; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 22px; letter-spacing: 0.02em; padding: 0 12px 4px">fragran<span style="color: #C9A96E">GSI</span></span>
+<span style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C; padding: 0 12px 24px">Backoffice</span>
+<a href="AdminDashboard.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Dashboard</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Produtos</a>
+<a href="AdminEncomendas.dc.html" aria-current="page" style="display: flex; align-items: center; height: 44px; padding: 0 12px; background: #2A2620; color: #EFE9DF; font-size: 14px; font-weight: 600; text-decoration: none">Encomendas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Clientes</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Faturas</a>
+<a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Devoluções</a>
+<a href="AdminIntegracao.dc.html" style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 12px; color: #CFC7BA; font-size: 14px; text-decoration: none">Integração<span style="min-width: 22px; height: 22px; border-radius: 11px; background: #F2B8B5; color: #5C0F0B; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">2</span></a>
+<a href="Main.dc.html" style="margin-top: 24px; display: flex; align-items: center; height: 44px; padding: 0 12px; color: #A39A8C; font-size: 13px; text-decoration: none">↗ Ver loja</a>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 32px clamp(16px, 3vw, 40px); box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+<h1 style="margin: 0; font-size: 28px; font-weight: 700">Encomendas</h1>
+<div style="display: flex; gap: 10px; flex-wrap: wrap">
+<label for="procura" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Procurar encomenda</label>
+<input id="procura" type="search" placeholder="N.º, cliente ou NIF" style="height: 44px; width: 240px; box-sizing: border-box; padding: 0 12px; border: 1px solid #D4D0C8; background: #FFFFFF; font-family: inherit; font-size: 14px">
+<button type="button" style="height: 44px; padding: 0 16px; border: 1px solid #D4D0C8; background: #FFFFFF; font-family: inherit; font-size: 14px; cursor: pointer">Exportar CSV</button>
+</div>
+</div>
+
+<div role="tablist" aria-label="Filtrar por estado" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+<button type="button" role="tab" aria-selected="{{t.sel}}" onClick="{{t.pick}}" style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid {{t.border}}; background: {{t.bg}}; color: {{t.fg}}; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">{{t.label}}</button>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section aria-label="Lista de encomendas" style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E1DB; overflow-x: auto">
+<div style="min-width: 760px; display: flex; flex-direction: column; font-size: 14px">
+<div style="display: grid; grid-template-columns: 0.8fr 0.9fr 1.4fr 1fr 0.9fr 1fr 1.3fr; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #E4E1DB; color: #5F5B54; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em">
+<span>N.º</span><span>Data</span><span>Cliente</span><span>BP (SAP)</span><span>Total</span><span>Estado</span><span>Fatura (Moloni)</span>
+</div>
+<sc-for list="{{rows}}" as="o" hint-placeholder-count="8">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.sel}}" style="display: grid; grid-template-columns: 0.8fr 0.9fr 1.4fr 1fr 0.9fr 1fr 1.3fr; gap: 8px; align-items: center; padding: 14px 16px; border: 0; border-bottom: 1px solid #E4E1DB; background: {{o.rowBg}}; text-align: left; font-family: inherit; font-size: 14px; color: #1A1917; cursor: pointer">
+<span style="font-weight: 700">{{o.id}}</span>
+<span>{{o.date}}</span>
+<span>{{o.client}}</span>
+<span style="font-family: ui-monospace, monospace; font-size: 13px">{{o.bp}}</span>
+<span>{{o.total}}</span>
+<span><span style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{o.stBg}}; color: {{o.stFg}}">{{o.status}}</span></span>
+<span style="color: {{o.invColor}}; font-weight: {{o.invWeight}}">{{o.invoice}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<aside aria-label="Detalhe da encomenda" style="flex: 1 1 300px; background: #FFFFFF; border: 1px solid #E4E1DB; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 style="margin: 0; font-size: 20px; font-weight: 700">Encomenda {{cur.id}}</h2>
+<span style="font-size: 13px; color: #5F5B54">{{cur.date}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; font-size: 14px">
+<span style="font-weight: 600">{{cur.client}}</span>
+<span style="color: #5F5B54">Business Partner SAP: {{cur.bp}}</span>
+<span style="color: #5F5B54">Cliente Moloni: {{cur.moloni}}</span>
+</div>
+<div style="display: flex; flex-direction: column; border-top: 1px solid #E4E1DB; font-size: 14px">
+<sc-for list="{{cur.lines}}" as="l" hint-placeholder-count="2">
+<div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #E4E1DB"><span>{{l.name}}</span><span>{{l.price}}</span></div>
+</sc-for>
+<div style="display: flex; justify-content: space-between; padding: 10px 0; font-weight: 700"><span>Total</span><span>{{cur.total}}</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #5F5B54">Percurso da integração</span>
+<sc-for list="{{cur.steps}}" as="s" hint-placeholder-count="3">
+<div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px">
+<span style="flex: 0 0 auto; width: 20px; height: 20px; border-radius: 50%; background: {{s.bg}}; color: #FFFFFF; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">{{s.icon}}</span>
+<span style="line-height: 1.45">{{s.text}}</span>
+</div>
+</sc-for>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5F5B54">Estado da encomenda
+<select style="height: 44px; padding: 0 10px; border: 1px solid #D4D0C8; background: #FFFFFF; font-family: inherit; font-size: 14px; color: #1A1917"><option>Pendente</option><option>Enviada</option><option>Entregue</option></select>
+</label>
+<sc-if value="{{cur.failed}}" hint-placeholder-val="{{ false }}">
+<a href="AdminIntegracao.dc.html" style="display: flex; align-items: center; justify-content: center; height: 46px; background: #B3261E; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none">Ver erro e tentar novamente</a>
+</sc-if>
+<sc-if value="{{cur.ok}}" hint-placeholder-val="{{ true }}">
+<a href="#" style="display: flex; align-items: center; justify-content: center; height: 46px; border: 1px solid #D4D0C8; color: #1A1917; font-size: 14px; font-weight: 600; text-decoration: none">Abrir fatura (PDF)</a>
+</sc-if>
+</aside>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'Todas', sel: '#1047' };
+  }
+  renderVals() {
+    const st = {
+      Pendente: ['#FDF0D5', '#6B4500'],
+      Enviada: ['#DCE8F7', '#163E6C'],
+      Entregue: ['#DDF0E4', '#14532D']
+    };
+    const data = [
+      { id: '#1048', date: '29/10 11:52', client: 'Ana Silva', bp: '1000412', moloni: '#88213', total: '153,00 €', status: 'Pendente', invoice: 'FR 2026/215', failed: false, lines: [{ name: 'Âmbar Noturno 100 ml × 1', price: '89,00 €' }, { name: 'Flor de Sal 50 ml × 1', price: '64,00 €' }] },
+      { id: '#1047', date: '29/10 10:31', client: 'João Costa', bp: '1000411', moloni: '—', total: '72,00 €', status: 'Pendente', invoice: 'Falhou', failed: true, lines: [{ name: 'Cedro Azul 100 ml × 1', price: '72,00 €' }] },
+      { id: '#1046', date: '28/10 18:04', client: 'Marta Rocha', bp: '1000398', moloni: '#88190', total: '177,00 €', status: 'Enviada', invoice: 'FR 2026/214', failed: false, lines: [{ name: 'Oud Dourado 50 ml × 1', price: '118,00 €' }, { name: 'Pinho de Inverno 100 ml × 1', price: '59,00 €' }] },
+      { id: '#1045', date: '28/10 15:20', client: 'Rui Ferreira', bp: '1000377', moloni: '#88102', total: '89,00 €', status: 'Entregue', invoice: 'FR 2026/213', failed: false, lines: [{ name: 'Âmbar Noturno 100 ml × 1', price: '89,00 €' }] },
+      { id: '#1044', date: '27/10 21:47', client: 'Inês Lopes', bp: '1000365', moloni: '#88077', total: '64,00 €', status: 'Entregue', invoice: 'FR 2026/212', failed: false, lines: [{ name: 'Flor de Sal 50 ml × 1', price: '64,00 €' }] },
+      { id: '#1043', date: '27/10 12:09', client: 'Pedro Alves', bp: '1000351', moloni: '#88051', total: '154,00 €', status: 'Enviada', invoice: 'FR 2026/211', failed: false, lines: [{ name: 'Vetiver Fumado 100 ml × 2', price: '154,00 €' }] },
+      { id: '#1042', date: '26/10 19:33', client: 'Sofia Martins', bp: '1000340', moloni: '#88020', total: '84,00 €', status: 'Entregue', invoice: 'FR 2026/210', failed: false, lines: [{ name: 'Sândalo Branco 75 ml × 1', price: '84,00 €' }] },
+      { id: '#1041', date: '26/10 09:58', client: 'Tiago Nunes', bp: '1000322', moloni: '#87994', total: '95,00 €', status: 'Entregue', invoice: 'FR 2026/209', failed: false, lines: [{ name: 'Couro & Tabaco 50 ml × 1', price: '95,00 €' }] }
+    ];
+    const filters = { 'Todas': null, 'Pendentes': 'Pendente', 'Enviadas': 'Enviada', 'Entregues': 'Entregue' };
+    const tabs = Object.keys(filters).map((label) => {
+      const on = this.state.filter === label;
+      const n = filters[label] ? data.filter((d) => d.status === filters[label]).length : data.length;
+      return {
+        label: label + ' (' + n + ')',
+        sel: on ? 'true' : 'false',
+        bg: on ? '#1A1917' : '#FFFFFF',
+        fg: on ? '#FFFFFF' : '#1A1917',
+        border: on ? '#1A1917' : '#D4D0C8',
+        pick: () => this.setState({ filter: label })
+      };
+    });
+    const want = filters[this.state.filter];
+    const rows = data.filter((d) => !want || d.status === want).map((d) => ({
+      ...d,
+      sel: this.state.sel === d.id ? 'true' : 'false',
+      rowBg: this.state.sel === d.id ? '#F3EEE3' : '#FFFFFF',
+      stBg: st[d.status][0],
+      stFg: st[d.status][1],
+      invColor: d.failed ? '#B3261E' : '#1A1917',
+      invWeight: d.failed ? '700' : '400',
+      pick: () => this.setState({ sel: d.id })
+    }));
+    const c = data.find((d) => d.id === this.state.sel) || data[0];
+    const green = '#1F7A4D', red = '#B3261E';
+    const steps = c.failed
+      ? [
+          { icon: '✓', bg: green, text: 'Cliente ' + c.bp + ' criado no SAP (MD_CUSTOMER_MASTER_SRV_01)' },
+          { icon: '✓', bg: green, text: 'Pagamento confirmado na loja' },
+          { icon: '!', bg: red, text: 'Moloni customers/insert falhou: NIF inválido' }
+        ]
+      : [
+          { icon: '✓', bg: green, text: 'Cliente ' + c.bp + ' no SAP' },
+          { icon: '✓', bg: green, text: 'Cliente ' + c.moloni + ' no Moloni' },
+          { icon: '✓', bg: green, text: 'Fatura-recibo ' + c.invoice + ' emitida no Moloni' }
+        ];
+    return {
+      tabs,
+      rows,
+      cur: { ...c, steps, ok: !c.failed }
+    };
+  }
+}
+</script>
+</body>
+</html>

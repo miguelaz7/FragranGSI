@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Paleta definida no CLAUDE.md. Usar como classes: bg-loja-bg, text-ouro, border-admin-line… */
+@theme {
+  /* Loja (tema escuro) */
+  --color-loja-bg: #12110f;
+  --color-loja-surface: #1c1a17;
+  --color-loja-line: #2e2a25;
+  --color-loja-text: #efe9df;
+  --color-loja-muted: #a39a8c;
+  --color-ouro: #c9a96e;
+  --color-stock-ok: #a8d5b0;
+  --color-stock-low: #e8b96a;
+
+  /* Backoffice (tema claro) */
+  --color-admin-bg: #f7f6f3;
+  --color-admin-card: #ffffff;
+  --color-admin-line: #e4e1db;
+  --color-admin-text: #1a1917;
+  --color-admin-muted: #5f5b54;
+  --color-sucesso: #1f7a4d;
+  --color-erro: #b3261e;
+}
+
+/* As fontes são carregadas em layout.tsx (next/font) e expostas como variáveis */
+@theme inline {
+  --font-serif: var(--font-bodoni);
+  --font-sans: var(--font-manrope);
+}

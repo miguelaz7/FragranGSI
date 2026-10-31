@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>fragranGSI — Entrar ou criar conta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#EFE9DF}a:hover{color:#C9A96E}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #12110F; color: #EFE9DF; font-family: 'Manrope', sans-serif; display: flex; flex-wrap: wrap">
+<div style="flex: 1 1 480px; min-height: 420px; background: #1C1A17; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 40px clamp(16px, 4vw, 56px); box-sizing: border-box">
+<a href="Main.dc.html" style="font-family: 'Bodoni Moda', serif; font-size: 26px; letter-spacing: 0.02em; text-decoration: none">fragran<span style="color: #C9A96E">GSI</span></a>
+<div style="display: flex; flex-direction: column; align-items: center">
+<div style="width: 54px; height: 34px; background: #3A352E; border-radius: 4px 4px 0 0"></div>
+<div style="width: 38px; height: 14px; background: #2E2A25"></div>
+<div style="width: 180px; height: 230px; border: 1px solid #4A443B; border-radius: 16px; background: #2A2520"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 32px; line-height: 1.2">A sua conta guarda encomendas, faturas e devoluções num só sítio.</span>
+<span style="font-size: 12px; color: #A39A8C">Imagem de ambiente</span>
+</div>
+</div>
+
+<main style="flex: 1 1 480px; display: flex; align-items: center; justify-content: center; padding: 56px clamp(16px, 4vw, 56px); box-sizing: border-box">
+<div style="width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 32px">
+<div role="tablist" aria-label="Acesso" style="display: flex; border-bottom: 1px solid #2E2A25">
+<button type="button" role="tab" aria-selected="{{loginSel}}" onClick="{{showLogin}}" style="flex: 1 1 0; height: 52px; background: none; border: 0; border-bottom: 2px solid {{loginLine}}; color: {{loginColor}}; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Entrar</button>
+<button type="button" role="tab" aria-selected="{{signupSel}}" onClick="{{showSignup}}" style="flex: 1 1 0; height: 52px; background: none; border: 0; border-bottom: 2px solid {{signupLine}}; color: {{signupColor}}; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Criar conta</button>
+</div>
+
+<sc-if value="{{isLogin}}" hint-placeholder-val="{{ false }}">
+<form style="display: flex; flex-direction: column; gap: 18px">
+<h1 style="margin: 0 0 6px; font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: 40px">Bem-vindo de volta</h1>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Email<input type="email" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Palavra-passe<input type="password" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<a href="#" style="align-self: flex-end; font-size: 13px">Esqueceu-se da palavra-passe?</a>
+<a href="Main.dc.html" style="display: flex; align-items: center; justify-content: center; height: 54px; background: #C9A96E; color: #12110F; font-size: 15px; font-weight: 600; text-decoration: none">Entrar</a>
+</form>
+</sc-if>
+
+<sc-if value="{{isSignup}}" hint-placeholder-val="{{ true }}">
+<form style="display: flex; flex-direction: column; gap: 18px">
+<h1 style="margin: 0 0 6px; font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: 40px">Criar conta</h1>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Nome<input type="text" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Apelido<input type="text" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Email<input type="email" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">Palavra-passe<input type="password" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<label style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: #A39A8C">NIF (opcional, para faturas)<input type="text" inputmode="numeric" style="height: 48px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px"></label>
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: #CFC7BA"><input type="checkbox" style="width: 18px; height: 18px; margin: 0; accent-color: #C9A96E"> Aceito os termos e a política de privacidade.</label>
+<a href="Main.dc.html" style="display: flex; align-items: center; justify-content: center; height: 54px; background: #C9A96E; color: #12110F; font-size: 15px; font-weight: 600; text-decoration: none">Criar conta</a>
+</form>
+</sc-if>
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1050}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'signup' };
+  }
+  renderVals() {
+    const login = this.state.tab === 'login';
+    return {
+      isLogin: login,
+      isSignup: !login,
+      loginSel: login ? 'true' : 'false',
+      signupSel: login ? 'false' : 'true',
+      loginLine: login ? '#C9A96E' : 'transparent',
+      signupLine: login ? 'transparent' : '#C9A96E',
+      loginColor: login ? '#EFE9DF' : '#A39A8C',
+      signupColor: login ? '#A39A8C' : '#EFE9DF',
+      showLogin: () => this.setState({ tab: 'login' }),
+      showSignup: () => this.setState({ tab: 'signup' })
+    };
+  }
+}
+</script>
+</body>
+</html>

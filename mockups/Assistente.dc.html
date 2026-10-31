@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>fragranGSI — Assistente de fragrâncias</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#EFE9DF}a:hover{color:#C9A96E}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #12110F; color: #EFE9DF; font-family: 'Manrope', sans-serif">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; padding: 20px clamp(16px, 4vw, 48px); border-bottom: 1px solid #2E2A25">
+<a href="Main.dc.html" style="font-family: 'Bodoni Moda', serif; font-size: 26px; letter-spacing: 0.02em; text-decoration: none">fragran<span style="color: #C9A96E">GSI</span></a>
+<nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 14px; letter-spacing: 0.04em">
+<a href="Catalogo.dc.html" style="text-decoration: none">Perfumes</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Mulher</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Homem</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Unissexo</a>
+<a href="Assistente.dc.html" style="text-decoration: none; color: #C9A96E">Encontrar o meu perfume</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 4px">
+<button type="button" aria-label="Pesquisar" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: 0; color: #EFE9DF; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></button>
+<a href="Conta.dc.html" aria-label="Conta" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg></a>
+<a href="Carrinho.dc.html" aria-label="Carrinho, 2 artigos" style="height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg><span style="font-size: 13px">2</span></a>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 56px clamp(16px, 4vw, 48px) 0; display: flex; flex-wrap: wrap; gap: 56px; align-items: flex-start">
+<section aria-labelledby="titulo" style="flex: 1 1 480px; display: flex; flex-direction: column; gap: 36px">
+<div style="display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 12px; letter-spacing: 0.24em; text-transform: uppercase; color: #C9A96E">Assistente de fragrâncias</span>
+<h1 id="titulo" style="margin: 0; font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: 52px; line-height: 1.1">Vamos encontrar o seu perfume.</h1>
+<p style="margin: 0; font-size: 16px; line-height: 1.6; color: #A39A8C">Três perguntas rápidas. As sugestões vêm só dos perfumes que temos em stock.</p>
+</div>
+
+<sc-for list="{{questions}}" as="q" hint-placeholder-count="3">
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 14px">
+<legend style="padding: 0 0 14px; font-size: 18px; font-weight: 600">{{q.title}}</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<sc-for list="{{q.options}}" as="o" hint-placeholder-count="4">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="height: 46px; padding: 0 20px; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; border: 1px solid {{o.border}}; font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer">{{o.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+</sc-for>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<label for="livre" style="font-size: 18px; font-weight: 600">Ou descreva o que procura</label>
+<textarea id="livre" rows="3" placeholder="Ex.: algo fresco para o verão, até 70 €, para oferecer ao meu pai" style="box-sizing: border-box; width: 100%; padding: 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 15px; line-height: 1.5; resize: vertical"></textarea>
+</div>
+<button type="button" style="align-self: flex-start; height: 52px; padding: 0 32px; background: #C9A96E; color: #12110F; border: 0; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">Ver sugestões</button>
+</section>
+
+<section aria-labelledby="sugestoes" style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 20px; padding: 32px; background: #1C1A17">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="sugestoes" style="margin: 0; font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: 32px">Sugestões para si</h2>
+<span style="font-size: 13px; color: #A39A8C">{{summary}}</span>
+</div>
+<sc-for list="{{recs}}" as="r" hint-placeholder-count="3">
+<a href="Produto.dc.html" style="display: flex; gap: 20px; padding: 20px 0; border-top: 1px solid #2E2A25; text-decoration: none">
+<div style="flex: 0 0 96px; height: 120px; background: #12110F; display: flex; flex-direction: column; align-items: center; justify-content: center">
+<div style="width: 16px; height: 10px; background: #3A352E"></div>
+<div style="width: 48px; height: 64px; border: 1px solid #4A443B; border-radius: 6px; background: {{r.tint}}"></div>
+</div>
+<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 22px">{{r.name}}</span>
+<span style="font-size: 15px; font-weight: 600">{{r.price}}</span>
+</div>
+<span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #C9A96E">{{r.match}}</span>
+<span style="font-size: 14px; line-height: 1.6; color: #CFC7BA">{{r.why}}</span>
+</div>
+</a>
+</sc-for>
+<span style="font-size: 12px; line-height: 1.5; color: #A39A8C; border-top: 1px solid #2E2A25; padding-top: 16px">Sugestões geradas com IA a partir das notas olfativas do catálogo.</span>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { ocasiao: 'Noite', notas: 'Amadeiradas', intensidade: 'Moderada' };
+  }
+  renderVals() {
+    const defs = [
+      { key: 'ocasiao', title: '1. Para que ocasião?', options: ['Dia a dia', 'Trabalho', 'Noite', 'Ocasião especial'] },
+      { key: 'notas', title: '2. Que notas prefere?', options: ['Frescas', 'Florais', 'Doces', 'Amadeiradas'] },
+      { key: 'intensidade', title: '3. Que intensidade?', options: ['Suave', 'Moderada', 'Intensa'] }
+    ];
+    const questions = defs.map((d) => ({
+      title: d.title,
+      options: d.options.map((label) => {
+        const on = this.state[d.key] === label;
+        return {
+          label,
+          pressed: on ? 'true' : 'false',
+          bg: on ? '#C9A96E' : 'transparent',
+          fg: on ? '#12110F' : '#EFE9DF',
+          border: on ? '#C9A96E' : '#4A443B',
+          pick: () => this.setState({ [d.key]: label })
+        };
+      })
+    }));
+    return {
+      questions,
+      summary: this.state.ocasiao + ' · ' + this.state.notas + ' · ' + this.state.intensidade,
+      recs: [
+        { name: 'Âmbar Noturno', price: '89,00 €', match: 'Melhor correspondência', why: 'Âmbar e sândalo num fundo quente: amadeirado, com presença suficiente para a noite sem ser pesado.', tint: '#2E2620' },
+        { name: 'Vetiver Fumado', price: '77,00 €', match: 'Alternativa mais seca', why: 'Vetiver e notas fumadas para quem prefere um amadeirado menos doce.', tint: '#262420' },
+        { name: 'Sândalo Branco', price: '84,00 €', match: 'Opção mais suave', why: 'Sândalo cremoso e almíscar: discreto, bom se quiser algo que também use de dia.', tint: '#29261F' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

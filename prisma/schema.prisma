@@ -1,0 +1,117 @@
+// Base de dados local da loja.
+// O SAP é o System of Record de produtos, preços, stock e clientes;
+// aqui guardamos apenas o que o SAP/Moloni não têm (contas, carrinho,
+// fotos e notas olfativas, mapeamento de IDs e o log de integração).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  nif          String?
+  address      String?
+  postalCode   String?
+  city         String?
+  role         String   @default("customer") // "customer" | "admin"
+
+  // Mapeamento cliente SAP <-> Moloni
+  sapBusinessPartner String? @unique
+  moloniCustomerId   Int?    @unique
+
+  cart      Cart?
+  orders    Order[]
+  createdAt DateTime   @default(now())
+}
+
+// Enriquecimento do produto SAP (o SAP não guarda fotos nem notas olfativas).
+// O nome, o preço e o stock vêm sempre do SAP.
+model ProductInfo {
+  sapProduct  String  @id // nº de material no SAP, ex.: "PERF001-093"
+  family      String // ex.: "Amadeirado"
+  gender      String // "mulher" | "homem" | "unissexo"
+  concentration String // ex.: "Eau de Parfum"
+  sizeMl      Int
+  topNotes    String
+  heartNotes  String
+  baseNotes   String
+  description String
+  imageUrl    String?
+  featured    Boolean @default(false)
+}
+
+// Carrinho: existe antes do login (visitante identificado por um cookie com
+// o id do carrinho). No checkout, depois de iniciar sessão, fica ligado ao utilizador.
+model Cart {
+  id        String     @id @default(cuid()) // valor guardado no cookie "carrinho"
+  userId    String?    @unique
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id         String @id @default(cuid())
+  cartId     String
+  cart       Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  sapProduct String // nº de material SAP
+  quantity   Int
+
+  @@unique([cartId, sapProduct])
+}
+
+model Order {
+  id     Int    @id @default(autoincrement()) // mostrado como #1048
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  // Estado logístico, alterado no backoffice
+  status        String @default("Pendente") // "Pendente" | "Enviada" | "Entregue"
+  // Estado da fatura-recibo no Moloni
+  invoiceStatus String @default("pendente") // "pendente" | "emitida" | "erro"
+  total         Float
+
+  moloniDocumentId Int?
+  moloniDocumentNo String? // ex.: "FR 2026/215"
+
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    Int
+  order      Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sapProduct String
+  name       String
+  quantity   Int
+  unitPrice  Float
+}
+
+// Uma linha por cada chamada feita ao SAP ou ao Moloni
+model IntegrationLog {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  system     String // "SAP" | "Moloni"
+  operation  String // ex.: "POST invoices/insert"
+  reference  String? // ex.: "#1048", "Sync stock"
+  status     String // "OK" | "Erro" | "Resolvido"
+  durationMs Int
+  response   String? // corpo da resposta (truncado, sem credenciais)
+  message    String? // explicação legível do resultado
+
+  // Para o botão "Tentar novamente": que ação repetir e com que dados
+  retryAction  String?
+  retryPayload String?
+
+  @@index([createdAt])
+  @@index([system, status])
+}

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>fragranGSI — Catálogo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#EFE9DF}a:hover{color:#C9A96E}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #12110F; color: #EFE9DF; font-family: 'Manrope', sans-serif">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; padding: 20px clamp(16px, 4vw, 48px); border-bottom: 1px solid #2E2A25">
+<a href="Main.dc.html" style="font-family: 'Bodoni Moda', serif; font-size: 26px; letter-spacing: 0.02em; text-decoration: none">fragran<span style="color: #C9A96E">GSI</span></a>
+<nav aria-label="Principal" style="display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 14px; letter-spacing: 0.04em">
+<a href="Catalogo.dc.html" style="text-decoration: none; color: #C9A96E">Perfumes</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Mulher</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Homem</a>
+<a href="Catalogo.dc.html" style="text-decoration: none">Unissexo</a>
+<a href="Assistente.dc.html" style="text-decoration: none">Encontrar o meu perfume</a>
+</nav>
+<div style="display: flex; align-items: center; gap: 4px">
+<button type="button" aria-label="Pesquisar" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: 0; color: #EFE9DF; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></button>
+<a href="Conta.dc.html" aria-label="Conta" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg></a>
+<a href="Carrinho.dc.html" aria-label="Carrinho, 2 artigos" style="height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 8px; text-decoration: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 8h14l-1 13H6L5 8z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg><span style="font-size: 13px">2</span></a>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px)">
+<nav aria-label="Caminho" style="padding: 28px 0 0; font-size: 13px; color: #A39A8C"><a href="Main.dc.html" style="color: #A39A8C">Início</a> / Perfumes</nav>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px; padding: 24px 0 40px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'Bodoni Moda', serif; font-weight: 400; font-size: 56px">Perfumes</h1>
+<span style="font-size: 14px; color: #A39A8C">24 perfumes · a mostrar 1–9</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<label for="pesquisa" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Pesquisar perfumes</label>
+<input id="pesquisa" type="search" placeholder="Pesquisar por nome ou nota…" style="height: 44px; width: 260px; box-sizing: border-box; padding: 0 14px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 14px">
+<label for="ordenar" style="font-size: 13px; color: #A39A8C">Ordenar</label>
+<select id="ordenar" style="height: 44px; padding: 0 12px; background: #1C1A17; border: 1px solid #2E2A25; color: #EFE9DF; font-family: inherit; font-size: 14px">
+<option>Mais vendidos</option>
+<option>Preço: mais baixo</option>
+<option>Preço: mais alto</option>
+<option>Novidades</option>
+</select>
+</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start">
+<aside aria-label="Filtros" style="flex: 1 1 220px; max-width: 260px; display: flex; flex-direction: column; gap: 32px">
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px">
+<legend style="padding: 0 0 12px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C">Género</legend>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Mulher</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Homem</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #C9A96E"> Unissexo</label>
+</fieldset>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px">
+<legend style="padding: 0 0 12px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C">Família olfativa</legend>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #C9A96E"> Amadeirado</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Floral</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Cítrico</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Oriental</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Verde</label>
+</fieldset>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 12px">
+<legend style="padding: 0 0 12px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C">Concentração</legend>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Eau de Parfum</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Eau de Toilette</label>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #C9A96E"> Extrait</label>
+</fieldset>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<label for="preco" style="font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #A39A8C">Preço até 120 €</label>
+<input id="preco" type="range" min="20" max="200" value="120" style="accent-color: #C9A96E">
+</div>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px; padding-top: 8px; border-top: 1px solid #2E2A25"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #C9A96E"> Só perfumes em stock</label>
+<button type="button" style="height: 44px; background: none; border: 1px solid #4A443B; color: #EFE9DF; font-family: inherit; font-size: 14px; cursor: pointer">Limpar filtros</button>
+</aside>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 56px">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 40px 24px">
+<sc-for list="{{products}}" as="p" hint-placeholder-count="9">
+<a href="Produto.dc.html" style="display: flex; flex-direction: column; gap: 14px; text-decoration: none">
+<div style="height: 300px; background: #1C1A17; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center">
+<div style="width: 34px; height: 22px; background: #3A352E; border-radius: 3px 3px 0 0"></div>
+<div style="width: 24px; height: 10px; background: #2E2A25"></div>
+<div style="width: 110px; height: 140px; border: 1px solid #4A443B; border-radius: 10px; background: {{p.tint}}"></div>
+<span style="position: absolute; left: 12px; bottom: 12px; font-size: 11px; color: #A39A8C">Foto do produto</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #A39A8C">{{p.family}}</span>
+<span style="font-family: 'Bodoni Moda', serif; font-size: 22px">{{p.name}}</span>
+<span style="font-size: 13px; color: #A39A8C">{{p.size}}</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 16px; font-weight: 600">{{p.price}}</span>
+<span style="font-size: 12px; color: {{p.stockColor}}">{{p.stock}}</span>
+</div>
+</a>
+</sc-for>
+</div>
+<nav aria-label="Paginação" style="display: flex; justify-content: center; gap: 8px">
+<a href="#" aria-label="Página anterior" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #2E2A25; text-decoration: none">‹</a>
+<a href="#" aria-current="page" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: #C9A96E; color: #12110F; font-weight: 600; text-decoration: none">1</a>
+<a href="#" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #2E2A25; text-decoration: none">2</a>
+<a href="#" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #2E2A25; text-decoration: none">3</a>
+<a href="#" aria-label="Página seguinte" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid #2E2A25; text-decoration: none">›</a>
+</nav>
+</div>
+</div>
+</main>
+
+<footer style="border-top: 1px solid #2E2A25; margin-top: 96px; padding: 40px clamp(16px, 4vw, 48px); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px; font-size: 13px; color: #A39A8C">
+<span style="font-family: 'Bodoni Moda', serif; font-size: 18px; letter-spacing: 0.02em; color: #EFE9DF">fragran<span style="color: #C9A96E">GSI</span></span>
+<span>Projeto académico IAIE · UMinho 2026/27</span>
+<nav aria-label="Rodapé" style="display: flex; flex-wrap: wrap; gap: 20px">
+<a href="#" style="text-decoration: none">Envios</a>
+<a href="#" style="text-decoration: none">Devoluções</a>
+<a href="#" style="text-decoration: none">Contactos</a>
+</nav>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const ok = '#A8D5B0', low = '#E8B96A', out = '#A39A8C';
+    return {
+      products: [
+        { name: 'Cedro Azul', family: 'Amadeirado', size: 'Eau de Toilette · 100 ml', price: '72,00 €', stock: '● Em stock', stockColor: ok, tint: '#22262B' },
+        { name: 'Vetiver Fumado', family: 'Amadeirado', size: 'Eau de Parfum · 100 ml', price: '77,00 €', stock: '● Em stock', stockColor: ok, tint: '#262420' },
+        { name: 'Couro & Tabaco', family: 'Amadeirado especiado', size: 'Extrait · 50 ml', price: '95,00 €', stock: '● Últimas unidades', stockColor: low, tint: '#2B221D' },
+        { name: 'Âmbar Noturno', family: 'Oriental amadeirado', size: 'Eau de Parfum · 100 ml', price: '89,00 €', stock: '● Em stock', stockColor: ok, tint: '#2E2620' },
+        { name: 'Sândalo Branco', family: 'Amadeirado cremoso', size: 'Eau de Parfum · 75 ml', price: '84,00 €', stock: '● Em stock', stockColor: ok, tint: '#29261F' },
+        { name: 'Pinho de Inverno', family: 'Amadeirado fresco', size: 'Eau de Toilette · 100 ml', price: '59,00 €', stock: '● Em stock', stockColor: ok, tint: '#212622' },
+        { name: 'Musgo & Chuva', family: 'Amadeirado verde', size: 'Eau de Parfum · 50 ml', price: '66,00 €', stock: '● Em stock', stockColor: ok, tint: '#222821' },
+        { name: 'Oud Dourado', family: 'Amadeirado oriental', size: 'Extrait · 50 ml', price: '118,00 €', stock: '● Últimas unidades', stockColor: low, tint: '#2C2519' },
+        { name: 'Íris Pó', family: 'Floral amadeirado', size: 'Eau de Parfum · 50 ml', price: '81,00 €', stock: '○ Esgotado', stockColor: out, tint: '#26232A' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
