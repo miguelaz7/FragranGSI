@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { getCatalog, type CatalogProduct } from "@/lib/catalog";
+import { getStoreCatalog, type CatalogProduct } from "@/lib/catalog";
+import { CONCENTRATIONS, FAMILIES, GENDERS } from "@/lib/product-options";
 import { ProductCard } from "@/components/loja/ProductCard";
 import { CatalogError } from "@/components/loja/CatalogError";
+import { FilterForm } from "@/components/loja/FilterForm";
 
 export const metadata: Metadata = { title: "Perfumes" };
 
 // Os filtros vivem no URL (?genero=mulher&familia=Floral…): um formulário GET
-// normal, sem JavaScript no browser. Os links do cabeçalho e da página inicial
-// usam os mesmos parâmetros.
+// (FilterForm). Os links do cabeçalho e da página inicial usam os mesmos parâmetros.
 type Filters = {
   q: string;
   genero: string[];
@@ -20,13 +21,6 @@ type Filters = {
   ordenar: string;
 };
 
-const GENDERS = [
-  { value: "mulher", label: "Mulher" },
-  { value: "homem", label: "Homem" },
-  { value: "unissexo", label: "Unissexo" },
-];
-const FAMILIES = ["Amadeirado", "Floral", "Cítrico", "Oriental", "Verde"];
-const CONCENTRATIONS = ["Eau de Parfum", "Eau de Toilette", "Extrait"];
 const SORTS = [
   { value: "nome", label: "Nome" },
   { value: "preco-asc", label: "Preço: mais baixo" },
@@ -90,14 +84,16 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalogo">[
 
   let catalog: CatalogProduct[];
   try {
-    catalog = await getCatalog();
+    catalog = await getStoreCatalog();
   } catch {
     return <CatalogError />;
   }
   const products = applyFilters(catalog, filters);
 
   return (
-    <form method="get" className="flex flex-col gap-8">
+    // key: quando os filtros do URL mudam (ex.: clique em "Unissexo" no cabeçalho),
+    // o formulário é recriado e as caixas mostram o filtro aplicado
+    <FilterForm key={JSON.stringify(filters)} className="flex flex-col gap-8">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="font-serif text-5xl">Perfumes</h1>
@@ -139,8 +135,11 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalogo">[
             Só perfumes em stock
           </label>
           <div className="flex flex-wrap gap-3">
-            <button type="submit" className="h-11 bg-ouro px-5 font-semibold text-loja-bg hover:bg-ouro/90">Aplicar filtros</button>
-            <Link href="/catalogo" className="flex h-11 items-center border border-loja-line px-5 hover:border-ouro hover:text-ouro">Limpar</Link>
+            {/* Só é preciso sem JavaScript: com JS os filtros aplicam-se ao mudar */}
+            <noscript>
+              <button type="submit" className="h-11 bg-ouro px-5 font-semibold text-loja-bg hover:bg-ouro/90">Aplicar filtros</button>
+            </noscript>
+            <Link href="/catalogo" className="flex h-11 items-center border border-loja-line px-5 hover:border-ouro hover:text-ouro">Limpar filtros</Link>
           </div>
         </aside>
 
@@ -156,7 +155,7 @@ async function Catalog({ searchParams }: { searchParams: PageProps<"/catalogo">[
           )}
         </div>
       </div>
-    </form>
+    </FilterForm>
   );
 }
 

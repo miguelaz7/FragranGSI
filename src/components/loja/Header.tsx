@@ -1,13 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCartCount } from "@/lib/cart";
-
-const nav = [
-  { href: "/catalogo", label: "Perfumes" },
-  { href: "/catalogo?genero=mulher", label: "Mulher" },
-  { href: "/catalogo?genero=homem", label: "Homem" },
-  { href: "/catalogo?genero=unissexo", label: "Unissexo" },
-];
+import { NAV_ITEMS } from "@/lib/nav";
+import { HeaderNav } from "./HeaderNav";
 
 export function Logo() {
   return (
@@ -35,14 +30,14 @@ export function Header() {
       </Link>
 
       <nav aria-label="Principal" className="flex flex-wrap gap-x-7 gap-y-2 text-sm tracking-[0.04em]">
-        {nav.map((item) => (
-          <Link key={item.href} href={item.href} className="hover:text-ouro">
-            {item.label}
-          </Link>
-        ))}
-        <Link href="/assistente" className="text-ouro hover:underline">
-          Encontrar o meu perfume
-        </Link>
+        {/* Enquanto o URL não é conhecido (páginas dinâmicas), mostra os links sem realce */}
+        <Suspense
+          fallback={NAV_ITEMS.map((item) => (
+            <Link key={item.href} href={item.href} className="hover:text-ouro">{item.label}</Link>
+          ))}
+        >
+          <HeaderNav />
+        </Suspense>
       </nav>
 
       <div className="flex items-center gap-1">

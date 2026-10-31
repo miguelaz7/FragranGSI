@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
-import { getCatalog, type CatalogProduct } from "@/lib/catalog";
+import { getStoreCatalog, type CatalogProduct } from "@/lib/catalog";
 
 // Carrinho de visitante: o browser guarda só o id do carrinho num cookie
 // httpOnly; os artigos ficam na BD local. Assim dá para comprar sem conta
@@ -42,7 +42,7 @@ export async function getCartView() {
   const items = id ? await db.cartItem.findMany({ where: { cartId: id }, orderBy: { id: "asc" } }) : [];
   if (items.length === 0) return { lines: [] as CartLine[], total: 0, canCheckout: false };
 
-  const catalog = await getCatalog();
+  const catalog = await getStoreCatalog();
   const lines: CartLine[] = items.map((item) => {
     const product = catalog.find((p) => p.sapProduct === item.sapProduct) ?? null;
     let problem: string | null = null;

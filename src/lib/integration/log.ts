@@ -27,7 +27,7 @@ type LogContext = {
 const MAX_BODY = 4000;
 
 // Remove campos sensíveis antes de guardar uma resposta no log.
-const SECRET_KEYS = /pass(word)?|secret|token|authorization|cookie/i;
+const SECRET_KEYS = /pass(word)?|secret|token|authorization|cookie|^access$|^refresh$/i;
 
 function sanitize(value: unknown): string {
   const text = JSON.stringify(

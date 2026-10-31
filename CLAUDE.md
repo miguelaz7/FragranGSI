@@ -46,11 +46,16 @@ Notas SAP: POST exige token CSRF (GET com `x-csrf-token: fetch`, reutilizar toke
 - Token: grant password / refresh_token (renovar automaticamente)
 - customers/insert, invoices/insert (fatura-recibo), PDF da fatura
 - IDs necessários: company_id, document_set_id, tax_id, unit_id (em `.env`)
+- Configurado a 31/10: empresa **FragranGSI** (company_id 403295; a conta também tem a "Empresa Demonstração", id 5, que não se usa), série "M" (975430), IVA Normal 23% (3936365), unidade "Unidade" (3819255). Para voltar a listar: `node --env-file=.env scripts/moloni-ids.mjs [company_id]`.
+- Os pedidos `getAll` respondem com uma lista; os erros vêm como lista de `{ code, description }`, `{ valid: 0 }` ou `{ error }` (ver `isErrorList` em `moloni.ts`).
+- Os tokens OAuth nunca vão para o IntegrationLog (o log do grant guarda só `expires_in`).
+- **Faturação bloqueada até a conta ser ativada (31/10):** `invoiceReceipts/insert` falha com `5 document_set_id / document_set_wsat_id` — a série "M" não tem código ATCUD (`document_set_at_codes: []`, `for_invoice_receipt: 0`) e o NIF da empresa é "255214529_UM". O professor vai ativar as contas "_UM" no Moloni com uma role de teste; depois confirmar a série com `documentSets/getAll` e voltar a testar (primeiro com `status: 0`, rascunho). A "Empresa Demonstração" (id 5) tem séries com ATCUD fictício e serve de alternativa para testes.
+- Já criado na FragranGSI (testes de 31/10): categoria "Perfumes" (10661082), cliente "Cliente Teste fragranGSI" NIF 999999990 (163193339), produto "Âmbar Amadeirado" ref. PERF001-093 a 72,3577 € + IVA 23% (244956655). `customers/insert`, `products/insert` e `productCategories/insert` funcionam. Pagamento Multibanco = 3460740; Pronto Pagamento = 2662835; Portugal = 1; Português = 1.
 
 ## Fluxos principais
 1. Registo de cliente (na loja ou no backoffice): cria BP no SAP (draft → ativação) + cliente no Moloni; guarda mapeamento na BD. O cliente tem de aparecer no Moloni.
 2. Catálogo/produto: SAP (produto + preço + stock) enriquecido com fotos e notas olfativas da BD local.
-3. Criar produto no backoffice: formulário (nome, concentração, tamanho, preço, notas olfativas, foto) → material criado no SAP por cópia do modelo + preço PR00; dados de enriquecimento guardados na BD local. O produto tem de aparecer no SAP. O stock é lançado à mão no SAP (`MIGO`); o backoffice indica isso.
+3. Produtos no backoffice (`/admin/produtos`): lista os materiais do SAP (nome/preço/stock só leitura) + estado da ficha local; editar ficha (família, género, concentração, tamanho, notas, descrição, foto, destaque, visível); "remover" = esconder da loja (`ProductInfo.visible`). "Novo produto" é guiado: cria a ficha e mostra os passos para criar material, stock e PR00 no SAP à mão; o produto aparece na loja quando o material existir no SAP. **Objetivo original (criar o material no SAP por API) bloqueado** pelo dump na ativação — retomar se o professor indicar a solução.
 4. Carrinho e checkout: qualquer visitante adiciona ao carrinho (cookie httpOnly `carrinho` com o id do `Cart` na BD; `src/lib/cart.ts` + Server Actions em `src/app/(loja)/carrinho/actions.ts`). O login só é exigido em /checkout. Checkout: valida stock no SAP → fatura-recibo no Moloni → confirmação com PDF.
 5. Cada chamada a SAP/Moloni é registada (hora, sistema, operação, referência, estado, duração, resposta); erros com "Tentar novamente".
 6. Assistente IA: API Route que recomenda só perfumes em stock.
@@ -60,7 +65,7 @@ Notas SAP: POST exige token CSRF (GET com `x-csrf-token: fetch`, reutilizar toke
 - Backoffice: fundo #F7F6F3, cartões #FFFFFF, linhas #E4E1DB, texto #1A1917, secundário #5F5B54; sucesso #1F7A4D, erro #B3261E
 - Tipografia: Bodoni Moda (títulos), Manrope (texto)
 - Ecrãs: Main, Catalogo, Produto, Assistente, Carrinho, Checkout, Confirmacao, Conta, AdminDashboard, AdminEncomendas, AdminIntegracao (+ AdminProdutos e AdminClientes, sem mockup)
-- Backoffice em /admin, protegido por role admin (Auth0)
+- Backoffice em /admin, protegido por role admin (Auth0). **Decisão (31/10): a proteção do /admin é a última tarefa do projeto**; até lá está aberto (só em localhost).
 
 ## Regras
 - Nunca expor credenciais no frontend nem em logs.
@@ -70,11 +75,14 @@ Notas SAP: POST exige token CSRF (GET com `x-csrf-token: fetch`, reutilizar toke
 ## Comandos
 - `npm run dev` — servidor de desenvolvimento (http://localhost:3000)
 - `npx prisma migrate dev --name <nome>` — aplicar alterações ao schema; depois `npx prisma generate`
-- `npx prisma db seed` — enriquecimento local (família, notas, género…) dos perfumes que existem no SAP
+- `npx prisma db seed` — dados iniciais da ficha do `PERF001-093` (o caminho normal é editar as fichas em `/admin/produtos`)
 
 ## Notas técnicas
 - Next.js 16 com `cacheComponents`: dados por pedido (BD, SAP, cookies) têm de ficar dentro de `<Suspense>`; `params`/`cookies()` são assíncronos; `middleware` chama-se `proxy`.
 - Prisma 7: cliente gerado em `src/generated/prisma` (import de `@/generated/prisma/client`), SQLite via adapter better-sqlite3 (`src/lib/db.ts`).
 - Catálogo: `getCatalog()` em `src/lib/catalog.ts` junta SAP (produtos com prefixo `SAP_PRODUCT_PREFIX` no centro `SAP_PLANT`, stock tipo `01`, PR00) + `ProductInfo` local. Usa `"use cache"` + `cacheLife("minutes")` + `cacheTag("catalogo")`; chamar depois de `await connection()` para não ir ao SAP no build. O stock tem de ser revalidado ao vivo no checkout.
 - Sessão: `getCurrentUser()` em `src/lib/auth.ts` é o único ponto a ligar ao Auth0 (hoje devolve sempre null).
+- Monitor de integração em `/admin/integracao`. "Tentar novamente": `withLog({ retry: { action, payload } })` guarda a ação; as funções que a repetem estão em `RETRY_HANDLERS` (`src/app/admin/integracao/actions.ts`). Hoje só existe `sync-catalogo`; cada fluxo novo (cliente, fatura) deve registar a sua.
+- Loja usa `getStoreCatalog()` (sem produtos escondidos); o backoffice usa `getCatalog()` (todos). Depois de alterar uma ficha, chamar `updateTag("catalogo")`.
+- Fotos de produto: gravadas em `uploads/produtos/` (fora do git) e servidas pela rota `/fotos/[nome]`; limite 4 MB (`serverActions.bodySizeLimit` = 5mb em `next.config.ts`).
 - Chamadas externas passam sempre por `withLog()` (`src/lib/integration/log.ts`) para ficarem no IntegrationLog.

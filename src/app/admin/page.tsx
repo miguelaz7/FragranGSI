@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { db } from "@/lib/db";
 import { getCatalog } from "@/lib/catalog";
 import { dayKey, formatDayMonth, formatEur, formatLongDate, timeAgo } from "@/lib/format";
 import { SalesChart } from "@/components/admin/SalesChart";
+import { CartsPanel, CatalogHealth, IntegrationHealth } from "@/components/admin/DashboardPanels";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -110,6 +112,25 @@ async function Dashboard() {
             <LowStock />
           </Suspense>
         </section>
+      </div>
+
+      <section aria-labelledby="catalogo" className={`${card} gap-4`}>
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="catalogo" className="text-base font-bold">Catálogo e stock <span className="font-normal text-admin-muted">(SAP)</span></h2>
+          <Link href="/admin/produtos" className="text-[13px] underline">Ver produtos</Link>
+        </div>
+        <Suspense fallback={<p className="text-sm text-admin-muted">A ler o catálogo do SAP…</p>}>
+          <CatalogHealth />
+        </Suspense>
+      </section>
+
+      <div className="flex flex-wrap items-start gap-4">
+        <Suspense fallback={<p className="text-sm text-admin-muted">A carregar carrinhos…</p>}>
+          <CartsPanel now={now} />
+        </Suspense>
+        <Suspense fallback={<p className="text-sm text-admin-muted">A carregar integração…</p>}>
+          <IntegrationHealth now={now} />
+        </Suspense>
       </div>
 
       <section aria-labelledby="ultimas" className={`${card} gap-4`}>

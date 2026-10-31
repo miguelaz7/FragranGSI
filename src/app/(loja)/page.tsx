@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { getCatalog } from "@/lib/catalog";
+import { getStoreCatalog } from "@/lib/catalog";
 import { ProductCard } from "@/components/loja/ProductCard";
 import { CatalogError } from "@/components/loja/CatalogError";
 import { Logo } from "@/components/loja/Header";
@@ -26,25 +26,35 @@ const btnPrimary =
 const btnSecondary =
   "inline-flex h-13 items-center border border-[#4A443B] px-7 text-[15px] font-medium hover:border-ouro hover:text-ouro";
 
-// Preço e stock vêm do SAP (via getCatalog, com cache de ~1 min).
+// Perfumes marcados "Em destaque" no backoffice (preço e stock do SAP, cache ~1 min).
+// Se nenhum estiver marcado, a secção não aparece: a página inicial segue
+// sempre a escolha do backoffice.
 // Fica dentro de <Suspense>: o resto da página é pré-gerado e aparece logo.
-async function FeaturedProducts() {
+async function FeaturedSection() {
   // Ler o catálogo no pedido e não no build (o build não deve depender do SAP)
   await connection();
   let catalog;
   try {
-    catalog = await getCatalog();
+    catalog = await getStoreCatalog();
   } catch {
-    return <CatalogError />;
+    return (
+      <section className="pb-24">
+        <CatalogError />
+      </section>
+    );
   }
-  // Destaques escolhidos no backoffice; se não houver, os primeiros em stock
-  const marked = catalog.filter((p) => p.info?.featured);
-  const featured = (marked.length > 0 ? marked : catalog.filter((p) => p.stockStatus !== "out")).slice(0, 4);
-  if (featured.length === 0) return <p className="text-loja-muted">Ainda não há perfumes disponíveis.</p>;
+  const featured = catalog.filter((p) => p.info?.featured).slice(0, 4);
+  if (featured.length === 0) return null;
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-6 gap-y-12">
-      {featured.map((p) => <ProductCard key={p.sapProduct} product={p} />)}
-    </div>
+    <section className="flex flex-col gap-8 pb-24">
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <h2 className="font-serif text-4xl">Em destaque</h2>
+        <Link href="/catalogo" className="text-sm text-ouro hover:underline">Ver todos os perfumes →</Link>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-6 gap-y-12">
+        {featured.map((p) => <ProductCard key={p.sapProduct} product={p} />)}
+      </div>
+    </section>
   );
 }
 
@@ -87,15 +97,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-8 pb-24">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="font-serif text-4xl">Mais vendidos</h2>
-          <Link href="/catalogo" className="text-sm text-ouro hover:underline">Ver todos os perfumes →</Link>
-        </div>
-        <Suspense fallback={<p className="text-loja-muted">A carregar perfumes…</p>}>
-          <FeaturedProducts />
-        </Suspense>
-      </section>
+      <Suspense fallback={null}>
+        <FeaturedSection />
+      </Suspense>
 
       <section className="flex flex-wrap items-center gap-12 border border-loja-line bg-loja-surface p-[clamp(28px,5vw,64px)]">
         <div className="flex flex-[1_1_380px] flex-col gap-5">

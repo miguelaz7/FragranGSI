@@ -21,6 +21,17 @@ export function formatLongDate(date: Date) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** "11:52:14", ou "28/10 11:52" se não for hoje (hora de Lisboa) */
+export function formatLogTime(date: Date, now = new Date()) {
+  const time = date.toLocaleTimeString("pt-PT", { timeZone: TZ });
+  return dayKey(date) === dayKey(now) ? time : `${formatDayMonth(date)} ${time.slice(0, 5)}`;
+}
+
+/** "412 ms" ou "1,8 s" */
+export function formatDuration(ms: number) {
+  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toLocaleString("pt-PT", { maximumFractionDigits: 1 })} s`;
+}
+
 /** "há 2 min", "há 3 h", "há 5 dias" */
 export function timeAgo(date: Date, now = new Date()) {
   const min = Math.round((now.getTime() - date.getTime()) / 60_000);

@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { refresh } from "next/cache";
 import { db } from "@/lib/db";
-import { getCatalog } from "@/lib/catalog";
+import { getStoreCatalog } from "@/lib/catalog";
 import { CART_COOKIE, CART_COOKIE_OPTIONS, getCartId } from "@/lib/cart";
 
 // Server Actions do carrinho: correm no servidor, chamadas pelos formulários.
@@ -13,6 +13,13 @@ import { CART_COOKIE, CART_COOKIE_OPTIONS, getCartId } from "@/lib/cart";
 export type AddToCartState = { ok: boolean; message: string } | null;
 
 const MAX_QTY = 99;
+
+// Regista a última atividade do carrinho (usada no backoffice para
+// distinguir carrinhos ativos de abandonados)
+async function touchCart(cartId: string) {
+  // updateMany não falha se o carrinho já não existir (cookie antigo)
+  await db.cart.updateMany({ where: { id: cartId }, data: { updatedAt: new Date() } });
+}
 
 function readQuantity(formData: FormData) {
   const q = Number(formData.get("quantity"));
@@ -26,7 +33,7 @@ export async function addToCart(_prev: AddToCartState, formData: FormData): Prom
 
   let product;
   try {
-    product = (await getCatalog()).find((p) => p.sapProduct === sapProduct);
+    product = (await getStoreCatalog()).find((p) => p.sapProduct === sapProduct);
   } catch {
     return { ok: false, message: "Não foi possível confirmar o stock. Tente novamente dentro de momentos." };
   }
@@ -57,6 +64,7 @@ export async function addToCart(_prev: AddToCartState, formData: FormData): Prom
     create: { cartId: cartId!, sapProduct, quantity },
   });
 
+  await touchCart(cartId!);
   refresh(); // atualiza o contador do cabeçalho
   return { ok: true, message: quantity === 1 ? "Adicionado ao carrinho." : `${quantity} unidades adicionadas ao carrinho.` };
 }
@@ -72,11 +80,12 @@ export async function updateQuantity(formData: FormData) {
   if (quantity <= 0) {
     await db.cartItem.deleteMany({ where: { cartId, sapProduct } });
   } else {
-    const product = (await getCatalog()).find((p) => p.sapProduct === sapProduct);
+    const product = (await getStoreCatalog()).find((p) => p.sapProduct === sapProduct);
     const max = Math.min(product?.stock ?? 0, MAX_QTY);
     if (max <= 0) return;
     await db.cartItem.update({ where, data: { quantity: Math.min(quantity, max) } });
   }
+  await touchCart(cartId);
   refresh();
 }
 
@@ -85,5 +94,6 @@ export async function removeFromCart(formData: FormData) {
   const sapProduct = String(formData.get("sapProduct") ?? "");
   if (!cartId) return;
   await db.cartItem.deleteMany({ where: { cartId, sapProduct } });
+  await touchCart(cartId);
   refresh();
 }

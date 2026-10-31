@@ -39,19 +39,24 @@ async function requestToken(grant: "password" | "refresh_token"): Promise<Token>
     params.set("refresh_token", token!.refresh);
   }
 
-  return withLog({ system: "Moloni", operation: `POST grant (${grant})`, reference: "Token" }, async () => {
+  let newToken: Token | null = null;
+  // O log guarda só a validade: os tokens nunca vão para o IntegrationLog
+  await withLog({ system: "Moloni", operation: `POST grant (${grant})`, reference: "Token" }, async () => {
     const res = await fetch(`${API}/grant/?${params}`, { signal: AbortSignal.timeout(TIMEOUT_MS) });
     const json = await res.json().catch(() => null);
     if (!res.ok || !json?.access_token) {
-      throw new IntegrationError("Moloni", "Autenticação no Moloni falhou.", res.status, JSON.stringify(json));
+      const detail = json?.error_description ?? json?.error;
+      throw new IntegrationError("Moloni", `Autenticação no Moloni falhou${detail ? `: ${detail}` : "."}`, res.status, JSON.stringify({ error: json?.error, error_description: json?.error_description }));
     }
-    return {
+    newToken = {
       access: json.access_token,
       refresh: json.refresh_token,
       // Renovamos 60 s antes de expirar para evitar pedidos com token caducado
       expiresAt: Date.now() + (json.expires_in - 60) * 1000,
     };
+    return { expires_in: json.expires_in };
   });
+  return newToken!;
 }
 
 async function accessToken(): Promise<string> {
@@ -73,8 +78,9 @@ export function tokenStatus() {
 
 /**
  * Chama um endpoint do Moloni, ex.: moloniCall("customers/insert", {...}).
- * Com "?json=true" o Moloni aceita o corpo em JSON. Devolve erros
- * como lista de { field, message } (ou { valid: 0 }).
+ * Com "?json=true" o Moloni aceita o corpo em JSON. Os pedidos "getAll"
+ * respondem com uma lista; os erros vêm como lista de { code, description },
+ * como { valid: 0 } ou como { error }.
  */
 export async function moloniCall<T>(endpoint: string, data: Record<string, unknown> = {}): Promise<T> {
   const access = await accessToken();
@@ -100,18 +106,25 @@ export async function moloniCall<T>(endpoint: string, data: Record<string, unkno
     json = JSON.parse(text);
   } catch {}
 
-  const invalid =
-    Array.isArray(json) || (json && typeof json === "object" && "valid" in json && (json as { valid: number }).valid === 0);
+  const invalid = isErrorList(json) || (!!json && typeof json === "object" && !Array.isArray(json) &&
+    (("valid" in json && (json as { valid: number }).valid === 0) || "error" in json));
   if (!res.ok || invalid) {
     throw new IntegrationError("Moloni", describeMoloniError(json) ?? `Moloni respondeu ${res.status}`, res.status, text);
   }
   return json as T;
 }
 
+// Lista de erros de validação: [{ code, description }] (uma lista de dados,
+// ex.: empresas, não tem estes campos)
+function isErrorList(json: unknown): json is { code: string; field?: string; description: string }[] {
+  return Array.isArray(json) && json.length > 0 && json.every((e) => e && typeof e === "object" && "code" in e && "description" in e);
+}
+
 function describeMoloniError(json: unknown): string | null {
-  // Erros de validação: [{ code, field, description }]
-  if (Array.isArray(json) && json.length) {
-    return json.map((e) => [e.field, e.description ?? e.message].filter(Boolean).join(": ")).join("; ");
+  if (isErrorList(json)) return json.map((e) => [e.field, e.description].filter(Boolean).join(": ")).join("; ");
+  if (json && typeof json === "object" && "error" in json) {
+    const j = json as { error: string; error_description?: string };
+    return j.error_description ?? j.error;
   }
   return null;
 }

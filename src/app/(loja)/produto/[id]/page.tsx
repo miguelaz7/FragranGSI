@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { getCatalog, stockLabel, type CatalogProduct } from "@/lib/catalog";
+import { getStoreCatalog, stockLabel, type CatalogProduct } from "@/lib/catalog";
 import { formatEur } from "@/lib/format";
 import { ProductCard, stockColor } from "@/components/loja/ProductCard";
 import { ProductImage } from "@/components/loja/ProductImage";
@@ -36,7 +36,7 @@ async function Product({ params }: { params: PageProps<"/produto/[id]">["params"
   // Usa o mesmo catálogo em cache da listagem: produto, preço e stock do SAP
   let catalog: CatalogProduct[];
   try {
-    catalog = await getCatalog();
+    catalog = await getStoreCatalog();
   } catch {
     return (
       <div className="py-10">

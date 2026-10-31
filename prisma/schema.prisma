@@ -44,8 +44,9 @@ model ProductInfo {
   heartNotes  String
   baseNotes   String
   description String
-  imageUrl    String?
-  featured    Boolean @default(false)
+  imageUrl    String? // ex.: "/fotos/PERF001-093-1730000000.jpg"
+  featured    Boolean @default(false) // destaque na página inicial
+  visible     Boolean @default(true) // false = escondido da loja ("remover"); no SAP não se apaga
 }
 
 // Carrinho: existe antes do login (visitante identificado por um cookie com

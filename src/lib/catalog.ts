@@ -18,6 +18,7 @@ export type CatalogProduct = {
   currency: string;
   stock: number; // stock de utilização livre no centro
   stockStatus: StockStatus;
+  visible: boolean; // false = escondido da loja pelo backoffice
   info: Omit<ProductInfo, "sapProduct"> | null;
 };
 
@@ -53,9 +54,13 @@ function parseODataDate(value: string) {
   return new Date(Number(value.match(/\d+/)?.[0] ?? 0));
 }
 
+// Se uma leitura falhar, o backoffice pode repetir a sincronização do catálogo
+// ("Tentar novamente" no monitor de integração)
+const SYNC_RETRY = { action: "sync-catalogo", payload: {} };
+
 async function fetchSapProducts() {
   const { prefix, plant } = sapConfig();
-  return withLog({ system: "SAP", operation: "GET UI_PRODUCTLIST/ProductList", reference: "Catálogo" }, () =>
+  return withLog({ system: "SAP", operation: "GET UI_PRODUCTLIST/ProductList", reference: "Catálogo", retry: SYNC_RETRY }, () =>
     sapGet<{ results: SapProduct[] }>("UI_PRODUCTLIST", "ProductList", {
       $filter: `Plant eq '${plant}' and startswith(Product,'${prefix}')`,
       $top: "500",
@@ -65,7 +70,7 @@ async function fetchSapProducts() {
 
 async function fetchSapStock() {
   const { prefix, plant } = sapConfig();
-  return withLog({ system: "SAP", operation: "GET C_STOCKQUANTITYVALUEBYTYPE", reference: "Stock" }, () =>
+  return withLog({ system: "SAP", operation: "GET C_STOCKQUANTITYVALUEBYTYPE", reference: "Stock", retry: SYNC_RETRY }, () =>
     sapGet<{ results: SapStock[] }>("C_STOCKQUANTITYVALUEBYTYPE_CDS", "C_STOCKQUANTITYVALUEBYTYPE", {
       // O serviço de stock exige sempre o filtro Plant
       $filter: `Plant eq '${plant}' and startswith(Material,'${prefix}')`,
@@ -76,7 +81,7 @@ async function fetchSapStock() {
 
 async function fetchSapPrices() {
   const { prefix, salesOrg, channel } = sapConfig();
-  return withLog({ system: "SAP", operation: "GET C_SlsPricingConditionRecordTP (PR00)", reference: "Preços" }, () =>
+  return withLog({ system: "SAP", operation: "GET C_SlsPricingConditionRecordTP (PR00)", reference: "Preços", retry: SYNC_RETRY }, () =>
     sapGet<{ results: SapPrice[] }>("SD_PRICING_CONDITIONRECORD_SRV", "C_SlsPricingConditionRecordTP", {
       // Filtrar pela chave da tabela 304 é rápido (~1,5 s). NÃO filtrar por
       // IsActiveEntity: torna o pedido muito lento (>2 min). Os rascunhos
@@ -137,10 +142,22 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
         currency: price?.currency ?? "EUR",
         stock: qty,
         stockStatus: qty <= 0 ? "out" : qty <= LOW_STOCK ? "low" : "ok",
+        visible: infoBy.get(p.Product)?.visible ?? true,
         info: infoBy.get(p.Product) ?? null,
       } satisfies CatalogProduct;
     })
     .sort((a, b) => a.name.localeCompare(b.name, "pt"));
+}
+
+/** Catálogo que o cliente vê: sem os perfumes escondidos no backoffice. */
+export async function getStoreCatalog() {
+  return (await getCatalog()).filter((p) => p.visible);
+}
+
+/** A ficha da loja tem todos os campos preenchidos? */
+export function isInfoComplete(info: CatalogProduct["info"]) {
+  return !!info && [info.family, info.gender, info.concentration, info.topNotes, info.heartNotes, info.baseNotes, info.description]
+    .every((v) => v.trim() !== "") && info.sizeMl > 0;
 }
 
 export const stockLabel: Record<StockStatus, string> = {

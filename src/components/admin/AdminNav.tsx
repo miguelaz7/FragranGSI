@@ -2,15 +2,17 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { db } from "@/lib/db";
+import { AdminNavLink } from "./AdminNavLink";
 
 // Secções do backoffice. As que ainda não existem aparecem desativadas.
 const items = [
   { href: "/admin", label: "Dashboard", ready: true },
-  { href: "/admin/produtos", label: "Produtos", ready: false },
+  { href: "/admin/produtos", label: "Produtos", ready: true },
   { href: "/admin/encomendas", label: "Encomendas", ready: false },
   { href: "/admin/clientes", label: "Clientes", ready: false },
   { href: "/admin/faturas", label: "Faturas", ready: false },
   { href: "/admin/devolucoes", label: "Devoluções", ready: false },
+  { href: "/admin/integracao", label: "Integração", ready: true },
 ];
 
 const itemClass = "flex h-11 items-center justify-between px-3 text-sm";
@@ -43,23 +45,28 @@ export function AdminNav() {
 
       {items.map((item) =>
         item.ready ? (
-          // Por agora só o Dashboard existe; quando houver mais páginas,
-          // o item ativo passa a ser calculado com usePathname().
-          <Link key={item.href} href={item.href} aria-current="page" className={`${itemClass} bg-[#2A2620] font-semibold`}>
-            {item.label}
-          </Link>
+          // O AdminNavLink lê o URL atual; enquanto não o sabe (ex.: rotas com
+          // parâmetros), mostra o link simples, sem realce
+          <Suspense
+            key={item.href}
+            fallback={<Link href={item.href} className={`${itemClass} text-[#CFC7BA]`}>{item.label}</Link>}
+          >
+            <AdminNavLink href={item.href}>
+              {item.label}
+              {/* Nº de erros por resolver ao lado de "Integração" */}
+              {item.href === "/admin/integracao" && (
+                <Suspense>
+                  <ErrorBadge />
+                </Suspense>
+              )}
+            </AdminNavLink>
+          </Suspense>
         ) : (
           <span key={item.href} aria-disabled className={`${itemClass} cursor-default text-[#6E665B]`} title="Em breve">
             {item.label}
           </span>
         ),
       )}
-      <span aria-disabled className={`${itemClass} cursor-default text-[#6E665B]`} title="Em breve">
-        Integração
-        <Suspense>
-          <ErrorBadge />
-        </Suspense>
-      </span>
 
       <Link href="/" className={`${itemClass} mt-6 text-[13px] text-loja-muted hover:text-loja-text`}>
         ↗ Ver loja
