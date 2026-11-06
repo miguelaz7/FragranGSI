@@ -89,35 +89,129 @@ export async function sapGet<T>(service: string, path: string, query?: Record<st
   }
 }
 
-/** POST com token CSRF. Se o token expirou (403), obtém outro e repete uma vez. */
-export async function sapPost<T>(
-  service: string,
-  path: string,
-  body: unknown = {},
-  query?: Record<string, string>,
-): Promise<T> {
-  const send = async (csrf: Csrf) =>
-    fetch(buildUrl(service, path, query), {
-      method: "POST",
+/** Envia com o token guardado. Se expirou (403), obtém outro e repete uma vez. */
+async function withCsrf(service: string, send: (csrf: Csrf) => Promise<Response>) {
+  const res = await send(csrfCache.get(service) ?? (await fetchCsrf(service)));
+  if (res.status === 403 && res.headers.get("x-csrf-token")?.toLowerCase() === "required") {
+    return send(await fetchCsrf(service));
+  }
+  return res;
+}
+
+type WriteOptions = {
+  query?: Record<string, string>;
+  body?: unknown;
+  headers?: Record<string, string>;
+  // O SAP pode responder 200 e indicar um erro no cabeçalho "sap-message"
+  failOnMessage?: boolean;
+};
+
+/**
+ * Escrita com token CSRF (POST, PATCH ou DELETE).
+ * Devolve o conteúdo de "d", ou null se vier vazio.
+ */
+async function sapWrite<T>(method: string, service: string, path: string, options: WriteOptions = {}): Promise<T> {
+  const { query, body, headers, failOnMessage } = options;
+  const url = buildUrl(service, path, query);
+  // Só os function imports aceitam $format: nos outros dá HTTP 400 e o JSON vem pelo Accept
+  if (body !== undefined || method === "DELETE") url.searchParams.delete("$format");
+
+  const send = (csrf: Csrf) =>
+    fetch(url, {
+      method,
       headers: {
         Authorization: config().auth,
         Accept: "application/json",
-        "Content-Type": "application/json",
+        ...(body !== undefined && { "Content-Type": "application/json" }),
         "x-csrf-token": csrf.token,
         Cookie: csrf.cookies,
+        ...headers,
       },
-      body: JSON.stringify(body),
+      body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
 
   try {
-    let res = await send(csrfCache.get(service) ?? (await fetchCsrf(service)));
-    if (res.status === 403 && res.headers.get("x-csrf-token")?.toLowerCase() === "required") {
-      res = await send(await fetchCsrf(service));
-    }
+    const res = await withCsrf(service, send);
     if (!res.ok) throw await parseError(res);
+    if (failOnMessage) throwOnSapMessage(res);
     const text = await res.text();
     return (text ? JSON.parse(text).d : null) as T;
+  } catch (err) {
+    asIntegrationError(err);
+  }
+}
+
+function throwOnSapMessage(res: Response) {
+  const header = res.headers.get("sap-message");
+  if (!header) return;
+  let message: { severity?: string; message?: string } | null = null;
+  try {
+    message = JSON.parse(header);
+  } catch {}
+  if (message?.severity === "error") {
+    throw new IntegrationError("SAP", message.message ?? "O SAP devolveu um erro de validação.", res.status, header);
+  }
+}
+
+/** POST com token CSRF: criar entidades (com "body") ou chamar function imports (com "query"). */
+export function sapPost<T>(service: string, path: string, options?: WriteOptions): Promise<T> {
+  return sapWrite<T>("POST", service, path, options);
+}
+
+/** Altera campos de uma entidade (If-Match: * = não comparar versões). */
+export function sapPatch(service: string, path: string, body: unknown): Promise<null> {
+  return sapWrite<null>("PATCH", service, path, { body, headers: { "If-Match": "*" } });
+}
+
+export function sapDelete(service: string, path: string): Promise<null> {
+  return sapWrite<null>("DELETE", service, path, { headers: { "If-Match": "*" } });
+}
+
+/**
+ * Executa vários POST num único $batch, no mesmo changeset: ou correm todos ou
+ * nenhum. Devolve o "d" da última resposta. O $batch responde 202 mesmo quando
+ * uma operação falha, por isso o resultado de cada uma vem dentro do corpo.
+ */
+export async function sapBatch<T>(service: string, paths: string[]): Promise<T> {
+  const part = (path: string) =>
+    `--changeset\r\nContent-Type: application/http\r\nContent-Transfer-Encoding: binary\r\n\r\n` +
+    `POST ${path} HTTP/1.1\r\nAccept: application/json\r\nContent-Length: 0\r\n\r\n\r\n`;
+  const body =
+    `--batch\r\nContent-Type: multipart/mixed; boundary=changeset\r\n\r\n` +
+    `${paths.map(part).join("")}--changeset--\r\n--batch--\r\n`;
+
+  const url = buildUrl(service, "$batch");
+  url.searchParams.delete("$format");
+
+  try {
+    const res = await withCsrf(service, (csrf) =>
+      fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: config().auth,
+          Accept: "multipart/mixed",
+          "Content-Type": "multipart/mixed; boundary=batch",
+          "x-csrf-token": csrf.token,
+          Cookie: csrf.cookies,
+        },
+        body,
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      }),
+    );
+    if (!res.ok) throw await parseError(res);
+
+    const text = await res.text();
+    const statuses = [...text.matchAll(/HTTP\/1\.1 (\d{3})/g)].map((m) => Number(m[1]));
+    // Cada resposta traz o seu JSON numa linha própria
+    const results = text.split(/\r?\n/).filter((line) => line.startsWith("{")).map((line) => JSON.parse(line));
+
+    const failed = statuses.find((status) => status >= 400);
+    if (failed || statuses.length === 0) {
+      const message = results.find((r) => r.error)?.error?.message?.value ?? "O SAP não executou o $batch.";
+      throw new IntegrationError("SAP", message, failed, text);
+    }
+    return results.at(-1)?.d as T;
   } catch (err) {
     asIntegrationError(err);
   }

@@ -49,6 +49,6 @@ async function Checkout() {
     );
   }
 
-  // TODO: com sessão — dados de faturação, validar stock no SAP, fatura-recibo no Moloni
+  // TODO: com sessão — dados de faturação, validar stock no Moloni, fatura-recibo no Moloni
   return <p className="text-loja-muted">Checkout em construção.</p>;
 }

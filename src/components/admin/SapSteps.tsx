@@ -1,5 +1,5 @@
-// Passos para criar/completar um perfume no SAP à mão. A criação por API
-// (MD_C_PRODUCT_MAINTAIN_SRV) dá dump na ativação, ver CLAUDE.md.
+// Passos para criar/completar um perfume no SAP à mão. A criação por API já
+// funciona (ver CLAUDE.md), mas ainda não está ligada ao backoffice.
 export function SapSteps({ sapProduct, missing }: { sapProduct: string; missing: { material: boolean; price: boolean; stock: boolean } }) {
   const plant = process.env.SAP_PLANT ?? "HD00";
   const salesOrg = process.env.SAP_SALES_ORG ?? "DS00";

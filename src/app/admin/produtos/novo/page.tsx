@@ -5,7 +5,7 @@ import { ProductForm } from "@/components/admin/ProductForm";
 export const metadata: Metadata = { title: "Novo produto" };
 
 // Novo produto guiado: cria a ficha da loja; o material é criado à mão no SAP
-// (a criação por API dá dump na ativação — ver CLAUDE.md). Quando o material
+// (a criação por API ainda não está ligada aqui — ver CLAUDE.md). Quando o material
 // aparecer no SAP com o mesmo código, fica ligado a esta ficha.
 export default function NovoProdutoPage() {
   return (

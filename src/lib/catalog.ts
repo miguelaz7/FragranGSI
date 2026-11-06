@@ -3,11 +3,13 @@ import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { sapGet } from "@/lib/integration/sap";
 import { withLog } from "@/lib/integration/log";
+import { fetchMoloniStock } from "@/lib/moloni-products";
 import type { ProductInfo } from "@/generated/prisma/client";
 
-// Catálogo da loja = produtos do SAP (nome, preço, stock) + enriquecimento local
-// (família, notas olfativas, foto). O SAP é o System of Record: um perfume só
-// aparece na loja se existir no SAP; os dados locais são opcionais.
+// Catálogo da loja = produtos do SAP (nome, preço) + stock de venda do Moloni +
+// enriquecimento local (família, notas olfativas, foto). Um perfume só existe na
+// loja se existir no SAP. O stock vendável vem do Moloni porque as vendas não
+// conseguem descontar no SAP (sem acesso a movimentos de mercadoria).
 
 export type StockStatus = "ok" | "low" | "out";
 
@@ -16,7 +18,8 @@ export type CatalogProduct = {
   name: string; // descrição do material no SAP
   price: number | null; // PR00; null se não houver preço válido
   currency: string;
-  stock: number; // stock de utilização livre no centro
+  stock: number; // stock vendável (Moloni); desce com as faturas
+  sapStock: number; // stock de utilização livre no centro; só sobe com entradas
   stockStatus: StockStatus;
   visible: boolean; // false = escondido da loja pelo backoffice
   info: Omit<ProductInfo, "sapProduct"> | null;
@@ -96,8 +99,8 @@ async function fetchSapPrices() {
 
 /**
  * Lê o catálogo completo. Guardado em cache durante cerca de 1 minuto
- * ("minutes"), para não fazer 3 pedidos ao SAP em cada visita; o stock volta
- * a ser validado no SAP no checkout. A tag "catalogo" permite ao backoffice
+ * ("minutes"), para não repetir os pedidos em cada visita; o stock tem de voltar
+ * a ser validado no Moloni no checkout. A tag "catalogo" permite ao backoffice
  * forçar uma nova leitura ("Sincronizar agora").
  */
 export async function getCatalog(): Promise<CatalogProduct[]> {
@@ -105,11 +108,12 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
   cacheLife("minutes");
   cacheTag("catalogo");
 
-  // Os três pedidos são independentes: correm em paralelo
-  const [products, stock, prices, infos] = await Promise.all([
+  // Os pedidos são independentes: correm em paralelo
+  const [products, stock, prices, moloniStock, infos] = await Promise.all([
     fetchSapProducts(),
     fetchSapStock(),
     fetchSapPrices(),
+    fetchMoloniStock(),
     db.productInfo.findMany(),
   ]);
 
@@ -133,7 +137,8 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
 
   return products.results
     .map((p) => {
-      const qty = stockBy.get(p.Product) ?? 0;
+      // Um material ainda sem artigo no Moloni não se pode vender: conta como esgotado
+      const qty = moloniStock.get(p.Product) ?? 0;
       const price = priceBy.get(p.Product);
       return {
         sapProduct: p.Product,
@@ -141,6 +146,7 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
         price: price?.value ?? null,
         currency: price?.currency ?? "EUR",
         stock: qty,
+        sapStock: stockBy.get(p.Product) ?? 0,
         stockStatus: qty <= 0 ? "out" : qty <= LOW_STOCK ? "low" : "ok",
         visible: infoBy.get(p.Product)?.visible ?? true,
         info: infoBy.get(p.Product) ?? null,
@@ -149,9 +155,12 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
     .sort((a, b) => a.name.localeCompare(b.name, "pt"));
 }
 
-/** Catálogo que o cliente vê: sem os perfumes escondidos no backoffice. */
+/**
+ * Catálogo que o cliente vê: perfumes visíveis, com ficha e com preço. Assim, um
+ * material novo no SAP só chega à loja depois de configurado. Os esgotados continuam.
+ */
 export async function getStoreCatalog() {
-  return (await getCatalog()).filter((p) => p.visible);
+  return (await getCatalog()).filter((p) => p.visible && p.info && p.price != null);
 }
 
 /** A ficha da loja tem todos os campos preenchidos? */

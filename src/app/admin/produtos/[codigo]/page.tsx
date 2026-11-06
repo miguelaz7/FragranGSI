@@ -60,7 +60,8 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
           <dl className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 text-sm">
             <div><dt className="text-admin-muted">Nome</dt><dd className="font-semibold">{sap.name}</dd></div>
             <div><dt className="text-admin-muted">Preço (PR00)</dt><dd className="font-semibold">{sap.price != null ? formatEur(sap.price) : "Sem preço"}</dd></div>
-            <div><dt className="text-admin-muted">Stock livre</dt><dd className="font-semibold">{sap.stock} un.</dd></div>
+            <div><dt className="text-admin-muted">Entradas de stock (SAP)</dt><dd className="font-semibold">{sap.sapStock} un.</dd></div>
+            <div><dt className="text-admin-muted">Stock de venda (Moloni)</dt><dd className="font-semibold">{sap.stock} un.</dd></div>
           </dl>
         ) : (
           <p className="text-sm text-admin-muted">Este material ainda não existe no SAP (ou ainda não foi sincronizado).</p>
@@ -68,7 +69,7 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
       </section>
 
       {!sapError && (
-        <SapSteps sapProduct={sapProduct} missing={{ material: !sap, stock: !sap || sap.stock <= 0, price: !sap || sap.price == null }} />
+        <SapSteps sapProduct={sapProduct} missing={{ material: !sap, stock: !sap || sap.sapStock <= 0, price: !sap || sap.price == null }} />
       )}
 
       <section className={card}>

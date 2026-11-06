@@ -8,7 +8,7 @@ import { CART_COOKIE, CART_COOKIE_OPTIONS, getCartId } from "@/lib/cart";
 
 // Server Actions do carrinho: correm no servidor, chamadas pelos formulários.
 // O stock usado aqui é o do catálogo (cache de ~1 min); o checkout volta a
-// confirmar o stock diretamente no SAP antes de faturar.
+// confirmar o stock diretamente no Moloni antes de faturar.
 
 export type AddToCartState = { ok: boolean; message: string } | null;
 

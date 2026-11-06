@@ -59,15 +59,26 @@ async function requestToken(grant: "password" | "refresh_token"): Promise<Token>
   return newToken!;
 }
 
-async function accessToken(): Promise<string> {
-  if (token && Date.now() < token.expiresAt) return token.access;
+// Um pedido de token novo invalida o anterior, por isso pedidos em paralelo têm
+// de partilhar o mesmo: senão, o último a chegar deixa os outros sem token válido.
+let pendingToken: Promise<Token> | null = null;
+
+async function renewToken(): Promise<Token> {
   try {
-    token = await requestToken(token ? "refresh_token" : "password");
+    return await requestToken(token ? "refresh_token" : "password");
   } catch (err) {
     // Se o refresh token também expirou, volta a autenticar com password
     if (!token) throw err;
-    token = await requestToken("password");
+    return requestToken("password");
   }
+}
+
+async function accessToken(): Promise<string> {
+  if (token && Date.now() < token.expiresAt) return token.access;
+  pendingToken ??= renewToken().finally(() => {
+    pendingToken = null;
+  });
+  token = await pendingToken;
   return token.access;
 }
 
@@ -83,16 +94,27 @@ export function tokenStatus() {
  * como { valid: 0 } ou como { error }.
  */
 export async function moloniCall<T>(endpoint: string, data: Record<string, unknown> = {}): Promise<T> {
-  const access = await accessToken();
-  let res: Response;
-  try {
-    res = await fetch(`${API}/${endpoint}/?access_token=${access}&json=true`, {
+  const send = async () =>
+    fetch(`${API}/${endpoint}/?access_token=${await accessToken()}&json=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+
+  let res: Response;
+  let text: string;
+  try {
+    res = await send();
+    text = await res.text();
+    // O token pode ter sido invalidado por outro login: pede outro e repete uma vez
+    if (text.includes("Invalid access token")) {
+      token = null;
+      res = await send();
+      text = await res.text();
+    }
   } catch (err) {
+    if (err instanceof IntegrationError) throw err;
     const timeout = err instanceof Error && err.name === "TimeoutError";
     throw new IntegrationError(
       "Moloni",
@@ -100,7 +122,6 @@ export async function moloniCall<T>(endpoint: string, data: Record<string, unkno
     );
   }
 
-  const text = await res.text();
   let json: unknown = null;
   try {
     json = JSON.parse(text);
