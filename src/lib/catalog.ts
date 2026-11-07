@@ -1,39 +1,37 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
-import { sapGet } from "@/lib/integration/sap";
+import { parseODataDate, sapConfig, sapGet } from "@/lib/integration/sap";
 import { withLog } from "@/lib/integration/log";
+import { fetchMoloniArticles } from "@/lib/moloni-products";
 import type { ProductInfo } from "@/generated/prisma/client";
 
-// Catálogo da loja = produtos do SAP (nome, preço, stock) + enriquecimento local
-// (família, notas olfativas, foto). O SAP é o System of Record: um perfume só
-// aparece na loja se existir no SAP; os dados locais são opcionais.
+// Dois catálogos:
+// - Loja (getStoreCatalog): lê só o Moloni e a ficha local; não depende do SAP.
+// - Backoffice (getCatalog): junta SAP e Moloni, para sincronizar e comparar.
+// O SAP é a origem dos produtos, dos preços e das entradas de stock. O Moloni guarda
+// uma cópia, e o stock vendável vive lá porque as vendas não conseguem descontar no SAP.
 
 export type StockStatus = "ok" | "low" | "out";
 
 export type CatalogProduct = {
   sapProduct: string;
-  name: string; // descrição do material no SAP
-  price: number | null; // PR00; null se não houver preço válido
+  name: string;
+  price: number | null; // com IVA; null se não houver preço válido
   currency: string;
-  stock: number; // stock de utilização livre no centro
+  stock: number; // stock vendável (Moloni); desce com as faturas
   stockStatus: StockStatus;
   visible: boolean; // false = escondido da loja pelo backoffice
   info: Omit<ProductInfo, "sapProduct"> | null;
 };
 
-const LOW_STOCK = 5; // a partir daqui mostra "Últimas unidades"
+/** No backoffice também se vê o stock de utilização livre no SAP (só sobe com entradas). */
+export type AdminProduct = CatalogProduct & {
+  sapStock: number;
+  moloniPrice: number | null; // com IVA; "price" é o PR00 do SAP
+};
 
-// Estrutura organizacional (ver .env): só lemos os materiais do grupo
-function sapConfig() {
-  const { SAP_PRODUCT_PREFIX, SAP_PLANT, SAP_SALES_ORG, SAP_DISTRIBUTION_CHANNEL } = process.env;
-  return {
-    prefix: SAP_PRODUCT_PREFIX ?? "PERF",
-    plant: SAP_PLANT ?? "HD00",
-    salesOrg: SAP_SALES_ORG ?? "DS00",
-    channel: SAP_DISTRIBUTION_CHANNEL ?? "WH",
-  };
-}
+const LOW_STOCK = 5; // a partir daqui mostra "Últimas unidades"
 
 // --- Formato das respostas do SAP (só os campos que usamos) ---
 type SapProduct = { Product: string; ProductDescription: string; Plant: string };
@@ -49,10 +47,7 @@ type SapPrice = {
 
 const UNRESTRICTED_STOCK = "01"; // tipo de stock "utilização livre"
 
-/** Converte as datas OData v2 ("/Date(1775779200000)/") em Date. */
-function parseODataDate(value: string) {
-  return new Date(Number(value.match(/\d+/)?.[0] ?? 0));
-}
+const stockStatus = (qty: number): StockStatus => (qty <= 0 ? "out" : qty <= LOW_STOCK ? "low" : "ok");
 
 // Se uma leitura falhar, o backoffice pode repetir a sincronização do catálogo
 // ("Tentar novamente" no monitor de integração)
@@ -95,21 +90,22 @@ async function fetchSapPrices() {
 }
 
 /**
- * Lê o catálogo completo. Guardado em cache durante cerca de 1 minuto
- * ("minutes"), para não fazer 3 pedidos ao SAP em cada visita; o stock volta
- * a ser validado no SAP no checkout. A tag "catalogo" permite ao backoffice
+ * Lê o catálogo do backoffice. Guardado em cache durante cerca de 1 minuto
+ * ("minutes"), para não repetir os pedidos em cada visita; o stock tem de voltar
+ * a ser validado no Moloni no checkout. A tag "catalogo" permite ao backoffice
  * forçar uma nova leitura ("Sincronizar agora").
  */
-export async function getCatalog(): Promise<CatalogProduct[]> {
+export async function getCatalog(): Promise<AdminProduct[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("catalogo");
 
-  // Os três pedidos são independentes: correm em paralelo
-  const [products, stock, prices, infos] = await Promise.all([
+  // Os pedidos são independentes: correm em paralelo
+  const [products, stock, prices, articles, infos] = await Promise.all([
     fetchSapProducts(),
     fetchSapStock(),
     fetchSapPrices(),
+    fetchMoloniArticles(),
     db.productInfo.findMany(),
   ]);
 
@@ -133,7 +129,8 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
 
   return products.results
     .map((p) => {
-      const qty = stockBy.get(p.Product) ?? 0;
+      // Um material ainda sem artigo no Moloni não se pode vender: conta como esgotado
+      const qty = articles.get(p.Product)?.stock ?? 0;
       const price = priceBy.get(p.Product);
       return {
         sapProduct: p.Product,
@@ -141,17 +138,44 @@ export async function getCatalog(): Promise<CatalogProduct[]> {
         price: price?.value ?? null,
         currency: price?.currency ?? "EUR",
         stock: qty,
-        stockStatus: qty <= 0 ? "out" : qty <= LOW_STOCK ? "low" : "ok",
+        sapStock: stockBy.get(p.Product) ?? 0,
+        moloniPrice: articles.get(p.Product)?.price ?? null,
+        stockStatus: stockStatus(qty),
         visible: infoBy.get(p.Product)?.visible ?? true,
         info: infoBy.get(p.Product) ?? null,
-      } satisfies CatalogProduct;
+      } satisfies AdminProduct;
     })
     .sort((a, b) => a.name.localeCompare(b.name, "pt"));
 }
 
-/** Catálogo que o cliente vê: sem os perfumes escondidos no backoffice. */
-export async function getStoreCatalog() {
-  return (await getCatalog()).filter((p) => p.visible);
+/**
+ * Catálogo que o cliente vê: lê só o Moloni e a ficha local, por isso a loja continua
+ * a funcionar se o SAP falhar. Mostra os perfumes visíveis, com ficha e com preço;
+ * os esgotados continuam, porque já estão configurados.
+ */
+export async function getStoreCatalog(): Promise<CatalogProduct[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("catalogo");
+
+  const [articles, infos] = await Promise.all([fetchMoloniArticles(), db.productInfo.findMany()]);
+
+  return infos
+    .flatMap(({ sapProduct, ...info }) => {
+      const article = articles.get(sapProduct);
+      if (!article || !info.visible || article.price <= 0) return [];
+      return [{
+        sapProduct,
+        name: article.name,
+        price: article.price,
+        currency: "EUR",
+        stock: article.stock,
+        stockStatus: stockStatus(article.stock),
+        visible: true,
+        info,
+      } satisfies CatalogProduct];
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "pt"));
 }
 
 /** A ficha da loja tem todos os campos preenchidos? */

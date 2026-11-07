@@ -26,6 +26,9 @@ model User {
   // Mapeamento cliente SAP <-> Moloni
   sapBusinessPartner String? @unique
   moloniCustomerId   Int?    @unique
+  // Rascunho do cliente no SAP. A ativação dá erro neste sistema (ver CLAUDE.md),
+  // por isso o cliente fica em rascunho e sem nº de parceiro (sapBusinessPartner)
+  sapDraftUuid       String? @unique
 
   cart      Cart?
   orders    Order[]
@@ -48,6 +51,17 @@ model ProductInfo {
   imageUrl    String? // ex.: "/fotos/PERF001-093-1730000000.jpg"
   featured    Boolean @default(false) // destaque na página inicial
   visible     Boolean @default(true) // false = escondido da loja ("remover"); no SAP não se apaga
+}
+
+// Ligação do material SAP ao artigo do Moloni. O stock de venda vive no Moloni:
+// as vendas descontam lá e as entradas de stock são feitas no SAP. O campo
+// sapStockSynced é o stock do SAP já passado para o Moloni: a diferença é a nova entrada.
+model MoloniProduct {
+  sapProduct      String @id
+  moloniProductId Int    @unique
+  sapStockSynced  Float  @default(0)
+  // Último preço igual nos dois sistemas (com IVA): mostra de que lado veio uma alteração
+  priceSynced     Float?
 }
 
 // Carrinho: existe antes do login (visitante identificado por um cookie com

@@ -40,12 +40,20 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
       <input type="hidden" name="mode" value={mode} />
 
       {mode === "novo" ? (
-        <label className={label}>
-          Código do material no SAP
-          <input {...field("sapProduct")} placeholder="PERF002-093" className={`${input} uppercase`} autoComplete="off" />
-          <span className="text-xs font-normal text-admin-muted">Usar o mesmo código com que o material é (ou vai ser) criado no SAP.</span>
-          {error("sapProduct")}
-        </label>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+          <label className={label}>
+            Código do material no SAP
+            <input {...field("sapProduct")} placeholder="PERF003-093" className={`${input} uppercase`} autoComplete="off" />
+            <span className="text-xs font-normal text-admin-muted">O material é criado no SAP com este código e não se pode apagar depois.</span>
+            {error("sapProduct")}
+          </label>
+          <label className={label}>
+            Nome do perfume
+            <input {...field("name")} maxLength={40} placeholder="Cedro Atlântico" className={input} autoComplete="off" />
+            <span className="text-xs font-normal text-admin-muted">Fica como descrição do material no SAP.</span>
+            {error("name")}
+          </label>
+        </div>
       ) : (
         <input type="hidden" name="sapProduct" value={sapProduct} />
       )}
@@ -61,7 +69,9 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
         </label>
         <label className={label}>
           Género
-          <select {...field("gender")} defaultValue={info?.gender ?? ""} className={input}>
+          {/* key: depois de guardar, o React repõe o formulário e um select voltava ao valor
+              com que abriu; ao mudar a key, é recriado com o valor guardado */}
+          <select key={info?.gender} {...field("gender")} defaultValue={info?.gender ?? ""} className={input}>
             <option value="" disabled>Escolher…</option>
             {GENDERS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>
@@ -69,7 +79,7 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
         </label>
         <label className={label}>
           Concentração
-          <select {...field("concentration")} defaultValue={info?.concentration ?? ""} className={input}>
+          <select key={info?.concentration} {...field("concentration")} defaultValue={info?.concentration ?? ""} className={input}>
             <option value="" disabled>Escolher…</option>
             {CONCENTRATIONS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -132,7 +142,7 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
 
       <div className="flex flex-wrap items-center gap-4">
         <button type="submit" disabled={pending} className="h-10 bg-admin-text px-6 text-sm font-semibold text-white hover:bg-black disabled:opacity-60">
-          {pending ? "A guardar…" : mode === "novo" ? "Criar ficha" : "Guardar ficha"}
+          {pending ? (mode === "novo" ? "A criar no SAP…" : "A guardar…") : mode === "novo" ? "Criar produto" : "Guardar ficha"}
         </button>
         {state && (
           <span role="status" className={`text-sm ${state.ok ? "text-sucesso" : "text-erro"}`}>{state.message}</span>

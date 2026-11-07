@@ -10,7 +10,7 @@ const items = [
   { href: "/admin/analista", label: "Analista IA", ready: true },
   { href: "/admin/produtos", label: "Produtos", ready: true },
   { href: "/admin/encomendas", label: "Encomendas", ready: false },
-  { href: "/admin/clientes", label: "Clientes", ready: false },
+  { href: "/admin/clientes", label: "Clientes", ready: true },
   { href: "/admin/faturas", label: "Faturas", ready: false },
   { href: "/admin/devolucoes", label: "Devoluções", ready: false },
   { href: "/admin/integracao", label: "Integração", ready: true },

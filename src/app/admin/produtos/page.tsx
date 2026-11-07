@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { db } from "@/lib/db";
-import { getCatalog, isInfoComplete, type CatalogProduct } from "@/lib/catalog";
+import { getCatalog, isInfoComplete, type AdminProduct } from "@/lib/catalog";
 import { formatEur } from "@/lib/format";
 import { syncCatalogNow } from "../integracao/actions";
 import { setFeatured, setVisible } from "./actions";
@@ -21,7 +21,7 @@ export default function ProdutosPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-[28px] font-bold">Produtos</h1>
           <span className="text-sm text-admin-muted">
-            Nome, preço e stock vêm do SAP (só leitura). Aqui edita-se a ficha da loja: família, notas, foto e visibilidade.
+            A loja lê do Moloni. O preço altera-se na ficha de cada produto e sincronizar passa para o Moloni os produtos e as entradas de stock do SAP.
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -36,11 +36,11 @@ export default function ProdutosPage() {
   );
 }
 
-type Row = { sapProduct: string; sap: CatalogProduct | null; info: CatalogProduct["info"] };
+type Row = { sapProduct: string; sap: AdminProduct | null; info: AdminProduct["info"] };
 
 async function ProductTable() {
   await connection();
-  let catalog: CatalogProduct[];
+  let catalog: AdminProduct[];
   try {
     catalog = await getCatalog();
   } catch {
@@ -64,10 +64,10 @@ async function ProductTable() {
 
   return (
     <div className="overflow-x-auto border border-admin-line bg-admin-card">
-      <table className="w-full min-w-[960px] text-left text-sm">
+      <table className="w-full min-w-[1060px] text-left text-sm">
         <thead className="text-xs text-admin-muted">
           <tr className="border-b border-admin-line">
-            {["Código SAP", "Nome (SAP)", "Preço", "Stock", "Ficha da loja", "Destaque", "Na loja", ""].map((h) => (
+            {["Código SAP", "Nome (SAP)", "Preço", "Stock (Moloni)", "Entradas (SAP)", "Ficha da loja", "Destaque", "Na loja", ""].map((h) => (
               <th key={h} className="px-4 py-2.5 font-medium">{h}</th>
             ))}
           </tr>
@@ -83,6 +83,7 @@ async function ProductTable() {
               <td className="px-4 py-3 tabular-nums">
                 {!sap ? "—" : sap.stock <= 0 ? <span className="font-semibold text-erro">Esgotado</span> : sap.stockStatus === "low" ? <span className="font-semibold text-[#9A5B00]">{sap.stock} un.</span> : `${sap.stock} un.`}
               </td>
+              <td className="px-4 py-3 tabular-nums text-admin-muted">{sap ? `${sap.sapStock} un.` : "—"}</td>
               <td className="px-4 py-3">
                 {isInfoComplete(info) ? (
                   <span className={`${badge} bg-[#DDF0E4] text-[#14532D]`}>Completa</span>
@@ -123,10 +124,10 @@ async function ProductTable() {
                       {info.visible ? "● Visível" : "○ Escondido"}
                     </button>
                     {!sap && <span className="text-xs text-admin-muted">à espera do SAP</span>}
-                    {sap && sap.price == null && info.visible && <span className="text-xs text-admin-muted">sem preço</span>}
+                    {sap && sap.price == null && info.visible && <span className="text-xs text-admin-muted">fora da loja: sem preço</span>}
                   </form>
                 ) : (
-                  <span className="text-admin-muted">{sap ? "Visível (sem ficha)" : "—"}</span>
+                  <span className="text-admin-muted">{sap ? "Fora da loja (sem ficha)" : "—"}</span>
                 )}
               </td>
               <td className="px-4 py-3 text-right">
