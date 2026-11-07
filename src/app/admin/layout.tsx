@@ -4,7 +4,7 @@ import { AnalystProvider } from "@/components/admin/AnalystProvider";
 import { AnalystWidget } from "@/components/admin/AnalystWidget";
 
 // Layout do backoffice (tema claro, barra lateral escura).
-// TODO: proteger /admin com Auth0 (role admin) antes de ir para produção.
+// TODO: proteger /admin (role admin no User) antes de ir para produção.
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     // O AnalystProvider guarda as conversas do Analista IA para todo o backoffice

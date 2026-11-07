@@ -91,7 +91,7 @@ export function tokenStatus() {
  * Chama um endpoint do Moloni, ex.: moloniCall("customers/insert", {...}).
  * Com "?json=true" o Moloni aceita o corpo em JSON. Os pedidos "getAll"
  * respondem com uma lista; os erros vêm como lista de { code, description },
- * como { valid: 0 } ou como { error }.
+ * como lista de texto (["8 vat"]), como { valid: 0 } ou como { error }.
  */
 export async function moloniCall<T>(endpoint: string, data: Record<string, unknown> = {}): Promise<T> {
   const send = async () =>
@@ -127,7 +127,7 @@ export async function moloniCall<T>(endpoint: string, data: Record<string, unkno
     json = JSON.parse(text);
   } catch {}
 
-  const invalid = isErrorList(json) || (!!json && typeof json === "object" && !Array.isArray(json) &&
+  const invalid = isErrorList(json) || isCodeList(json) || (!!json && typeof json === "object" && !Array.isArray(json) &&
     (("valid" in json && (json as { valid: number }).valid === 0) || "error" in json));
   if (!res.ok || invalid) {
     throw new IntegrationError("Moloni", describeMoloniError(json) ?? `Moloni respondeu ${res.status}`, res.status, text);
@@ -141,7 +141,13 @@ function isErrorList(json: unknown): json is { code: string; field?: string; des
   return Array.isArray(json) && json.length > 0 && json.every((e) => e && typeof e === "object" && "code" in e && "description" in e);
 }
 
+// Erros curtos, como ["8 vat"]: um código e o campo. Uma lista de dados nunca traz só texto
+function isCodeList(json: unknown): json is string[] {
+  return Array.isArray(json) && json.length > 0 && json.every((e) => typeof e === "string" && /^\d+\s+\S+/.test(e));
+}
+
 function describeMoloniError(json: unknown): string | null {
+  if (isCodeList(json)) return `O Moloni recusou os campos: ${json.map((e) => e.split(/\s+/)[1]).join(", ")} (${json.join("; ")})`;
   if (isErrorList(json)) return json.map((e) => [e.field, e.description].filter(Boolean).join(": ")).join("; ");
   if (json && typeof json === "object" && "error" in json) {
     const j = json as { error: string; error_description?: string };

@@ -3,7 +3,7 @@ import { geminiChat, geminiConfigured, type ChatMessage } from "@/lib/integratio
 
 // POST /api/admin/analista — Analista IA do backoffice.
 // Recebe a conversa, junta o resumo atual dos dados da loja e pergunta ao Gemini.
-// TODO(Auth0): só para admin (o /admin ainda está aberto, ver CLAUDE.md).
+// TODO(admin): só para admin (o /admin ainda está aberto, ver CLAUDE.md).
 
 const MAX_MESSAGES = 12; // histórico enviado ao Gemini
 const MAX_CHARS = 1000; // por pergunta

@@ -36,14 +36,11 @@ async function Checkout() {
       <div className="flex max-w-[560px] flex-col items-start gap-5 border border-loja-line bg-loja-surface p-8">
         <h2 className="font-serif text-2xl">Inicie sessão para continuar</h2>
         <p className="leading-relaxed text-loja-muted">
-          Para emitirmos a fatura em seu nome precisamos da sua conta. O seu carrinho fica guardado
-          ({count} {count === 1 ? "artigo" : "artigos"}) e continua aqui depois de iniciar sessão.
+          O seu carrinho ({count} {count === 1 ? "artigo" : "artigos"}) continua aqui depois de iniciar sessão.
         </p>
-        {/* TODO(Auth0): ligar ao login do Auth0 com regresso a /checkout */}
-        <button type="button" disabled className="h-13 bg-ouro px-8 font-semibold text-loja-bg opacity-50">
+        <Link href="/conta?voltar=checkout" className="flex h-13 items-center bg-ouro px-8 font-semibold text-loja-bg hover:opacity-90">
           Iniciar sessão
-        </button>
-        <span className="text-xs text-loja-muted">O início de sessão (Auth0) ainda não está ativo.</span>
+        </Link>
         <Link href="/carrinho" className="text-sm text-ouro hover:underline">← Voltar ao carrinho</Link>
       </div>
     );

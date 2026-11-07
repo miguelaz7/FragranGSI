@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/auth";
 import { getCartCount } from "@/lib/cart";
 import { NAV_ITEMS } from "@/lib/nav";
 import { HeaderNav } from "./HeaderNav";
@@ -18,6 +19,18 @@ async function CartCount() {
     <>
       <span className="sr-only">Carrinho, {count} {count === 1 ? "artigo" : "artigos"}</span>
       {count > 0 && <span aria-hidden className="text-[13px]">{count}</span>}
+    </>
+  );
+}
+
+// Ponto dourado no ícone da conta quando há sessão iniciada
+async function SessionDot() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  return (
+    <>
+      <span aria-hidden className="absolute right-2 top-2 size-2 rounded-full bg-ouro" />
+      <span className="sr-only">, sessão iniciada</span>
     </>
   );
 }
@@ -47,11 +60,15 @@ export function Header() {
             <path d="M20 20l-3.5-3.5" />
           </svg>
         </Link>
-        <Link href="/conta" aria-label="Conta" className="flex size-11 items-center justify-center hover:text-ouro">
+        <Link href="/conta" className="relative flex size-11 items-center justify-center hover:text-ouro">
+          <span className="sr-only">Conta</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
             <circle cx="12" cy="8" r="4" />
             <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
           </svg>
+          <Suspense>
+            <SessionDot />
+          </Suspense>
         </Link>
         <Link href="/carrinho" className="flex h-11 items-center gap-1.5 px-2 hover:text-ouro">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>

@@ -74,10 +74,10 @@ async function CustomerTable() {
 
   return (
     <div className="overflow-x-auto border border-admin-line bg-admin-card">
-      <table className="w-full min-w-[900px] text-left text-sm">
+      <table className="w-full min-w-[1080px] text-left text-sm">
         <thead className="text-xs text-admin-muted">
           <tr className="border-b border-admin-line">
-            {["Nome", "Email", "NIF", "Localidade", "Moloni", "SAP", ""].map((h) => (
+            {["Nome", "Email", "NIF", "Localidade", "Moloni", "SAP", "Acesso à loja", ""].map((h) => (
               <th key={h} className="px-4 py-2.5 font-medium">{h}</th>
             ))}
           </tr>
@@ -101,7 +101,11 @@ async function CustomerTable() {
                   <span className={failed}>Sem registo</span>
                 )}
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-4 py-3">
+                {c.passwordHash ? <span className={ok}>Com acesso</span> : <span className={waiting}>Sem acesso</span>}
+              </td>
+              <td className="flex items-center justify-end gap-4 px-4 py-3">
+                <Link href={`/admin/clientes/${c.id}`} className="font-semibold underline">Editar</Link>
                 <DeleteCustomerButton id={c.id} name={c.name} sapBusinessPartner={c.sapBusinessPartner} />
               </td>
             </tr>
