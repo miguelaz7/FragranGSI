@@ -60,6 +60,8 @@ model MoloniProduct {
   sapProduct      String @id
   moloniProductId Int    @unique
   sapStockSynced  Float  @default(0)
+  // Último preço igual nos dois sistemas (com IVA): mostra de que lado veio uma alteração
+  priceSynced     Float?
 }
 
 // Carrinho: existe antes do login (visitante identificado por um cookie com

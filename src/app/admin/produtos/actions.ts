@@ -4,10 +4,13 @@ import { redirect } from "next/navigation";
 import { refresh, updateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { findPhotoFor, savePhoto } from "@/lib/photos";
+import { changeProductPrice } from "@/lib/prices";
+import { createProductInSap } from "@/lib/products";
 import { CONCENTRATIONS, GENDERS } from "@/lib/product-options";
 
-// Ações da aba Produtos. Só escrevem na BD local (ficha da loja): o nome,
-// o preço e o stock são do SAP e não se alteram aqui.
+// Ações da aba Produtos. A ficha da loja fica na BD local; o nome e o stock não se
+// alteram aqui. O preço é gravado no SAP e copiado para o Moloni (changePrice).
+// Um produto novo cria também o material no SAP (saveProduct, modo "novo").
 // TODO(Auth0): confirmar que quem chama é admin (getCurrentUser) antes de executar.
 
 export type ProductFormState = { ok: boolean; message: string; errors?: Record<string, string> } | null;
@@ -17,6 +20,7 @@ const text = (fd: FormData, name: string) => String(fd.get(name) ?? "").trim();
 export async function saveProduct(_prev: ProductFormState, fd: FormData): Promise<ProductFormState> {
   const mode = text(fd, "mode"); // "novo" | "editar"
   const sapProduct = text(fd, "sapProduct").toUpperCase();
+  const name = text(fd, "name"); // só no modo "novo": vai para a descrição do material no SAP
   const data = {
     family: text(fd, "family"),
     gender: text(fd, "gender"),
@@ -36,6 +40,7 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
   if (!/^[A-Z0-9-]{3,40}$/.test(sapProduct) || !sapProduct.startsWith(prefix)) {
     errors.sapProduct = `Código SAP inválido: tem de começar por ${prefix} (ex.: ${prefix}002-093).`;
   }
+  if (mode === "novo" && (!name || name.length > 40)) errors.name = "Indique o nome do perfume (máx. 40 caracteres).";
   if (!data.family) errors.family = "Indique a família olfativa.";
   if (!GENDERS.some((g) => g.value === data.gender)) errors.gender = "Escolha o género.";
   if (!CONCENTRATIONS.includes(data.concentration)) errors.concentration = "Escolha a concentração.";
@@ -73,7 +78,11 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
   });
   updateTag("catalogo"); // a loja passa a mostrar a ficha nova já no próximo pedido
 
-  if (mode === "novo") redirect(`/admin/produtos/${encodeURIComponent(sapProduct)}?criado=1`);
+  if (mode === "novo") {
+    // A ficha fica guardada mesmo que o SAP falhe: o erro fica no monitor com "Tentar novamente"
+    const sapOk = await createProductInSap(sapProduct, name).then(() => true, () => false);
+    redirect(`/admin/produtos/${encodeURIComponent(sapProduct)}?criado=1&sap=${sapOk ? 1 : 0}`);
+  }
   refresh();
   return { ok: true, message: "Ficha guardada." };
 }
@@ -94,4 +103,20 @@ export async function setFeatured(fd: FormData) {
   await db.productInfo.update({ where: { sapProduct }, data: { featured } });
   updateTag("catalogo");
   refresh();
+}
+
+export type PriceFormState = { ok: boolean; message: string } | null;
+
+/** Altera o preço de venda, com IVA. */
+export async function changePrice(_prev: PriceFormState, fd: FormData): Promise<PriceFormState> {
+  const price = Number(text(fd, "price").replace(",", "."));
+  if (!(price > 0 && price <= 9999.99)) return { ok: false, message: "Indique um preço entre 0,01 € e 9 999,99 €." };
+
+  try {
+    await changeProductPrice(text(fd, "sapProduct"), Number(price.toFixed(2)));
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Não foi possível alterar o preço." };
+  }
+  refresh();
+  return { ok: true, message: "Preço alterado no SAP e no Moloni." };
 }

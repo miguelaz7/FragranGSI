@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" width="1000" height="640" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1A1917"/>
+    </marker>
+    <marker id="seta-plan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8A847A"/>
+    </marker>
+    <linearGradient id="sap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#00B9F2"/>
+      <stop offset="1" stop-color="#0057D2"/>
+    </linearGradient>
+    <linearGradient id="gemini" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4796E3"/>
+      <stop offset="0.6" stop-color="#9168C0"/>
+      <stop offset="1" stop-color="#D96570"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1000" height="640" fill="#FFFFFF"/>
+
+  <!-- ============ LIGAÇÕES ============ -->
+  <g stroke="#1A1917" stroke-width="2" fill="none">
+    <!-- Browser <-> Next.js -->
+    <path d="M482 132 V206" marker-end="url(#seta)"/>
+    <path d="M518 206 V132" marker-end="url(#seta)"/>
+    <!-- Next.js <-> Moloni -->
+    <path d="M378 240 H252" marker-end="url(#seta)"/>
+    <path d="M252 270 H378" marker-end="url(#seta)"/>
+    <!-- Next.js <-> SAP -->
+    <path d="M622 240 H780" marker-end="url(#seta)"/>
+    <path d="M780 270 H622" marker-end="url(#seta)"/>
+    <!-- Next.js <-> BD -->
+    <path d="M485 342 V458" marker-end="url(#seta)"/>
+    <path d="M515 458 V342" marker-end="url(#seta)"/>
+    <!-- Next.js <-> Gemini -->
+    <path d="M420 342 V385 H140 V458" marker-start="url(#seta)" marker-end="url(#seta)"/>
+  </g>
+  <!-- Next.js <-> Auth0 -->
+  <path d="M580 342 V385 H860 V458" stroke="#1A1917" stroke-width="2" fill="none" marker-start="url(#seta)" marker-end="url(#seta)"/>
+
+  <!-- etiquetas das ligações -->
+  <g font-size="11.5" fill="#1A1917">
+    <text x="472" y="174" text-anchor="end">Pedidos HTTPS</text>
+    <text x="528" y="174">Páginas / JSON</text>
+
+    <text x="315" y="232" text-anchor="middle">REST</text>
+    <text x="315" y="287" text-anchor="middle" font-weight="bold">Token OAuth2</text>
+
+    <text x="701" y="232" text-anchor="middle">OData v2</text>
+    <text x="701" y="287" text-anchor="middle" font-weight="bold">Token CSRF</text>
+
+    <text x="525" y="404">Prisma ORM</text>
+
+    <text x="280" y="377" text-anchor="middle" font-weight="bold">API key</text>
+    <text x="720" y="377" text-anchor="middle" font-weight="bold">Token JWT</text>
+  </g>
+
+  <!-- ============ BROWSER (React) ============ -->
+  <g transform="translate(500 58)" fill="none" stroke="#149ECA" stroke-width="3">
+    <ellipse rx="40" ry="15"/>
+    <ellipse rx="40" ry="15" transform="rotate(60)"/>
+    <ellipse rx="40" ry="15" transform="rotate(120)"/>
+    <circle r="6" fill="#149ECA" stroke="none"/>
+  </g>
+  <text x="500" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">Frontend (React 19 + Tailwind)</text>
+  <text x="500" y="125" text-anchor="middle" font-size="11" fill="#5F5B54">Loja e Backoffice</text>
+
+  <!-- ============ NEXT.JS ============ -->
+  <rect x="380" y="208" width="240" height="132" rx="4" fill="#FFFFFF" stroke="#1A1917" stroke-width="1.5"/>
+  <circle cx="500" cy="244" r="24" fill="#000000"/>
+  <path d="M490 256 V232 L512 260 M510 232 V250" stroke="#FFFFFF" stroke-width="3.2" fill="none" stroke-linecap="square"/>
+  <text x="500" y="290" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">Backend Next.js 16 (Node.js)</text>
+  <text x="500" y="306" text-anchor="middle" font-size="11" fill="#5F5B54">API Routes + Server Actions</text>
+  <text x="500" y="321" text-anchor="middle" font-size="11" fill="#5F5B54">withLog() → log de integração</text>
+
+  <!-- ============ MOLONI ============ -->
+  <g transform="translate(140 232)">
+    <ellipse cx="-14" cy="0" rx="7" ry="17" transform="rotate(-28 -14 0)" fill="#7FC8F2"/>
+    <ellipse cx="0" cy="-4" rx="7" ry="19" fill="#2D8FD5"/>
+    <ellipse cx="14" cy="0" rx="7" ry="17" transform="rotate(28 14 0)" fill="#1C5FA8"/>
+  </g>
+  <text x="140" y="280" text-anchor="middle" font-size="30" font-weight="bold" fill="#1B2A4A" letter-spacing="-0.5">moloni</text>
+  <text x="140" y="300" text-anchor="middle" font-size="11" fill="#5F5B54">Clientes e faturas-recibo</text>
+
+  <!-- ============ SAP ============ -->
+  <path d="M800 222 H928 L866 284 H800 Z" fill="url(#sap)"/>
+  <text x="806" y="264" font-size="30" font-weight="bold" fill="#FFFFFF" letter-spacing="-0.5">SAP</text>
+  <text x="864" y="304" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">SAP S/4HANA</text>
+  <text x="864" y="319" text-anchor="middle" font-size="11" fill="#5F5B54">Produtos, preços, stock, clientes</text>
+
+  <!-- ============ BASE DE DADOS ============ -->
+  <g fill="#E8F1FB" stroke="#0F80CC" stroke-width="2">
+    <path d="M455 474 V530 A45 12 0 0 0 545 530 V474"/>
+    <ellipse cx="500" cy="474" rx="45" ry="12"/>
+    <path d="M455 502 A45 12 0 0 0 545 502" fill="none"/>
+  </g>
+  <text x="500" y="568" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">SQLite + Prisma 7</text>
+  <text x="500" y="583" text-anchor="middle" font-size="11" fill="#5F5B54">Utilizadores, carrinho, fichas, encomendas, log</text>
+
+  <!-- ============ GEMINI ============ -->
+  <path d="M140 466 C143 490 152 499 176 502 C152 505 143 514 140 538 C137 514 128 505 104 502 C128 499 137 490 140 466 Z" fill="url(#gemini)"/>
+  <text x="140" y="568" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">Google Gemini</text>
+  <text x="140" y="583" text-anchor="middle" font-size="11" fill="#5F5B54">Assistente e analista IA</text>
+
+  <!-- ============ AUTH0 (planeado) ============ -->
+  <g transform="translate(860 502)">
+    <path d="M0 -36 L26 -26 L22 14 C18 24 8 32 0 36 C-8 32 -18 24 -22 14 L-26 -26 Z" fill="#EB5424"/>
+    <path d="M0 -20 L5 -6 L19 -6 L8 3 L12 17 L0 8 L-12 17 L-8 3 L-19 -6 L-5 -6 Z" fill="#FFFFFF"/>
+  </g>
+  <text x="860" y="568" text-anchor="middle" font-size="13" font-weight="bold" fill="#1A1917">Auth0</text>
+  <text x="860" y="583" text-anchor="middle" font-size="11" fill="#5F5B54">Login de clientes e role admin</text>
+
+  <!-- legenda -->
+  <g font-size="10.5" fill="#5F5B54">
+    <text x="960" y="624" text-anchor="end">Credenciais só no servidor (.env) · nada chega ao browser</text>
+  </g>
+</svg>

@@ -4,9 +4,8 @@ import { ProductForm } from "@/components/admin/ProductForm";
 
 export const metadata: Metadata = { title: "Novo produto" };
 
-// Novo produto guiado: cria a ficha da loja; o material é criado à mão no SAP
-// (a criação por API ainda não está ligada aqui — ver CLAUDE.md). Quando o material
-// aparecer no SAP com o mesmo código, fica ligado a esta ficha.
+// Novo produto: guarda a ficha da loja e cria o material no SAP e o artigo no Moloni.
+// O stock e o primeiro preço são criados à mão no SAP (a ficha mostra os passos).
 export default function NovoProdutoPage() {
   return (
     <>
@@ -14,8 +13,8 @@ export default function NovoProdutoPage() {
         <Link href="/admin/produtos" className="text-sm text-admin-muted hover:text-admin-text">← Produtos</Link>
         <h1 className="text-[28px] font-bold">Novo produto</h1>
         <span className="max-w-[640px] text-sm text-admin-muted">
-          Preencha a ficha da loja. A seguir, o backoffice indica os passos para criar o material, o stock e o preço no SAP.
-          O perfume aparece na loja quando existir no SAP com o mesmo código.
+          Preencha a ficha da loja. O material é criado no SAP e o artigo no Moloni. A seguir, o backoffice indica como
+          lançar o stock e criar o preço; o perfume aparece na loja quando tiver preço.
         </span>
       </div>
       <section className="border border-admin-line bg-admin-card p-[22px]">

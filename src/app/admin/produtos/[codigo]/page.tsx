@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getCatalog } from "@/lib/catalog";
 import { formatEur } from "@/lib/format";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { PriceForm } from "@/components/admin/PriceForm";
 import { SapSteps } from "@/components/admin/SapSteps";
 import { setVisible } from "../actions";
 
@@ -25,7 +26,8 @@ export default function ProdutoAdminPage({ params, searchParams }: PageProps<"/a
 async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos/[codigo]">, "params" | "searchParams">) {
   await connection();
   const sapProduct = decodeURIComponent((await params).codigo);
-  const created = (await searchParams).criado === "1";
+  const { criado, sap: sapResult } = await searchParams;
+  const created = criado === "1";
 
   // Dados SAP: se o SAP falhar, ainda se consegue editar a ficha local
   let sap = null;
@@ -46,23 +48,32 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
         <span className="text-sm text-admin-muted">Material SAP {sapProduct}</span>
       </div>
 
-      {created && (
+      {created && sapResult !== "0" && (
         <p role="status" className="border border-[#B7DCC4] bg-[#DDF0E4] p-4 text-sm text-[#14532D]">
-          Ficha criada. {sap ? "O perfume já existe no SAP e aparece na loja." : "Aparece na loja assim que o material existir no SAP."}
+          Ficha e material criados. O perfume aparece na loja quando tiver preço.
+        </p>
+      )}
+      {created && sapResult === "0" && (
+        <p role="alert" className="border border-[#F2B8B5] bg-admin-card p-4 text-sm text-erro">
+          A ficha foi guardada, mas falhou a criação do material no SAP. Pode repetir no{" "}
+          <Link href="/admin/integracao?filtro=erros" className="underline">monitor de integração</Link>.
         </p>
       )}
 
       <section className={card}>
-        <h2 className="text-base font-bold">Dados do SAP <span className="font-normal text-admin-muted">(só leitura — alterar no SAP)</span></h2>
+        <h2 className="text-base font-bold">Dados do SAP <span className="font-normal text-admin-muted">(o nome e o stock alteram-se no SAP)</span></h2>
         {sapError ? (
           <p className="text-sm text-erro">Não foi possível ler o SAP agora. Ver o monitor de integração.</p>
         ) : sap ? (
+          <>
           <dl className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 text-sm">
             <div><dt className="text-admin-muted">Nome</dt><dd className="font-semibold">{sap.name}</dd></div>
             <div><dt className="text-admin-muted">Preço (PR00)</dt><dd className="font-semibold">{sap.price != null ? formatEur(sap.price) : "Sem preço"}</dd></div>
             <div><dt className="text-admin-muted">Entradas de stock (SAP)</dt><dd className="font-semibold">{sap.sapStock} un.</dd></div>
             <div><dt className="text-admin-muted">Stock de venda (Moloni)</dt><dd className="font-semibold">{sap.stock} un.</dd></div>
           </dl>
+          {sap.price != null && <PriceForm sapProduct={sapProduct} price={sap.price} />}
+          </>
         ) : (
           <p className="text-sm text-admin-muted">Este material ainda não existe no SAP (ou ainda não foi sincronizado).</p>
         )}

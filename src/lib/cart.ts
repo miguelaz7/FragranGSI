@@ -36,7 +36,7 @@ export type CartLine = {
   problem: string | null; // motivo que impede finalizar a compra
 };
 
-/** Artigos do carrinho juntos com o catálogo (preço do SAP e stock do Moloni). */
+/** Artigos do carrinho juntos com o catálogo (preço e stock do Moloni). */
 export async function getCartView() {
   const id = await getCartId();
   const items = id ? await db.cartItem.findMany({ where: { cartId: id }, orderBy: { id: "asc" } }) : [];

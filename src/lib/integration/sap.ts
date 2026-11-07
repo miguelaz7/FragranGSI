@@ -18,6 +18,22 @@ function config() {
   };
 }
 
+// Estrutura organizacional (ver .env): só lemos os materiais do grupo
+export function sapConfig() {
+  const { SAP_PRODUCT_PREFIX, SAP_PLANT, SAP_SALES_ORG, SAP_DISTRIBUTION_CHANNEL } = process.env;
+  return {
+    prefix: SAP_PRODUCT_PREFIX ?? "PERF",
+    plant: SAP_PLANT ?? "HD00",
+    salesOrg: SAP_SALES_ORG ?? "DS00",
+    channel: SAP_DISTRIBUTION_CHANNEL ?? "WH",
+  };
+}
+
+/** Converte as datas OData v2 ("/Date(1775779200000)/") em Date. */
+export function parseODataDate(value: string) {
+  return new Date(Number(value.match(/\d+/)?.[0] ?? 0));
+}
+
 function buildUrl(service: string, path: string, query: Record<string, string> = {}) {
   const { baseUrl, client } = config();
   const url = new URL(`${baseUrl}/${service}/${path.replace(/^\//, "")}`);

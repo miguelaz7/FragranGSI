@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { db } from "@/lib/db";
-import { getCatalog, isInfoComplete, type CatalogProduct } from "@/lib/catalog";
+import { getCatalog, isInfoComplete, type AdminProduct } from "@/lib/catalog";
 import { formatEur } from "@/lib/format";
 import { syncCatalogNow } from "../integracao/actions";
 import { setFeatured, setVisible } from "./actions";
@@ -21,7 +21,7 @@ export default function ProdutosPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-[28px] font-bold">Produtos</h1>
           <span className="text-sm text-admin-muted">
-            Nome e preço vêm do SAP. O stock de venda está no Moloni e desce com as faturas; sincronizar passa para lá as entradas de stock do SAP.
+            A loja lê do Moloni. O preço altera-se na ficha de cada produto e sincronizar passa para o Moloni os produtos e as entradas de stock do SAP.
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -36,11 +36,11 @@ export default function ProdutosPage() {
   );
 }
 
-type Row = { sapProduct: string; sap: CatalogProduct | null; info: CatalogProduct["info"] };
+type Row = { sapProduct: string; sap: AdminProduct | null; info: AdminProduct["info"] };
 
 async function ProductTable() {
   await connection();
-  let catalog: CatalogProduct[];
+  let catalog: AdminProduct[];
   try {
     catalog = await getCatalog();
   } catch {

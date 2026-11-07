@@ -1,5 +1,5 @@
-// Passos para criar/completar um perfume no SAP à mão. A criação por API já
-// funciona (ver CLAUDE.md), mas ainda não está ligada ao backoffice.
+// Passos para completar um perfume no SAP à mão. O material é criado pelo "Novo
+// produto"; o passo do material só aparece se essa criação tiver falhado.
 export function SapSteps({ sapProduct, missing }: { sapProduct: string; missing: { material: boolean; price: boolean; stock: boolean } }) {
   const plant = process.env.SAP_PLANT ?? "HD00";
   const salesOrg = process.env.SAP_SALES_ORG ?? "DS00";
