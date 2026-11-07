@@ -6,14 +6,14 @@ import { getCatalog } from "@/lib/catalog";
 import { sapGet } from "@/lib/integration/sap";
 import { moloniCall } from "@/lib/integration/moloni";
 import { withLog } from "@/lib/integration/log";
-import { retryCustomerMoloni, retryCustomerSap } from "@/lib/customers";
+import { retryCustomerMoloni, retryCustomerMoloniUpdate, retryCustomerSap, retryCustomerSapUpdate } from "@/lib/customers";
 import { syncMoloniProducts } from "@/lib/moloni-products";
 import { retryPrice } from "@/lib/prices";
 import { retryMaterial } from "@/lib/products";
 
 // Ações do monitor de integração. Os erros não são relançados: cada chamada
 // já fica registada no IntegrationLog por withLog() e aparece na tabela.
-// TODO(Auth0): confirmar que quem chama é admin (getCurrentUser) antes de executar.
+// TODO(admin): confirmar que quem chama é admin (getCurrentUser) antes de executar.
 
 /** Lê de novo o SAP e passa para o Moloni os artigos, os preços e as entradas de stock. */
 async function syncCatalog() {
@@ -28,6 +28,8 @@ const RETRY_HANDLERS: Record<string, (payload: unknown) => Promise<void>> = {
   "sync-catalogo": syncCatalog,
   "cliente-moloni": retryCustomerMoloni,
   "cliente-sap": retryCustomerSap,
+  "cliente-moloni-dados": retryCustomerMoloniUpdate,
+  "cliente-sap-dados": retryCustomerSapUpdate,
   "preco-sap": retryPrice,
   "material-sap": retryMaterial,
 };

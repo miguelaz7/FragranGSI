@@ -24,6 +24,20 @@ type Entity = { __metadata: { uri: string } };
 // O URI devolvido pelo SAP termina na chave da entidade, ex.: C_BusinessPartnerAddress(...)
 const entityPath = (e: Entity) => e.__metadata.uri.split("/").pop()!;
 
+/**
+ * Na ativação, o SAP só guarda a rua e a cidade dos campos CustomerSupplier...:
+ * StreetName e CityName aparecem no rascunho, mas perdem-se sem dar erro.
+ */
+function addressFields(customer: SapCustomerData) {
+  return {
+    CustomerSupplierStreetName: customer.address,
+    StreetName: customer.address,
+    PostalCode: customer.postalCode,
+    CustomerSupplierCityName: customer.city,
+    CityName: customer.city,
+  };
+}
+
 /** O SAP exige apelido: a última palavra do nome é o apelido, o resto o nome próprio. */
 function splitName(name: string) {
   const words = name.trim().split(/\s+/);
@@ -76,13 +90,7 @@ export async function createCustomerDraft(customer: SapCustomerData, reference: 
       return entityPath(results[0]);
     });
     await step("PATCH C_BusinessPartnerAddress", () =>
-      sapPatch(SERVICE, address, {
-        Country: "PT",
-        StreetName: customer.address,
-        PostalCode: customer.postalCode,
-        CityName: customer.city,
-        CorrespondenceLanguage: "PT",
-      }),
+      sapPatch(SERVICE, address, { Country: "PT", CorrespondenceLanguage: "PT", ...addressFields(customer) }),
     );
 
     const firstRole = await step("GET to_BusinessPartnerRole", async () => {
@@ -104,6 +112,54 @@ export async function createCustomerDraft(customer: SapCustomerData, reference: 
   }
 
   return draft.draftUuid;
+}
+
+/**
+ * Altera um parceiro ativo: abre-o em rascunho, muda o nome e a morada e ativa.
+ * Como na criação, a preparação e a ativação têm de ir no mesmo $batch.
+ */
+export async function updateSapCustomer(businessPartner: string, customer: SapCustomerData, reference: string, retry: Retry) {
+  const step = <T>(operation: string, call: () => Promise<T>) =>
+    withLog({ system: "SAP", operation, reference, retry }, call);
+
+  const draft = await step("POST C_BusinessPartnerCustomerEdit", async () => {
+    const d = await sapPost<Entity & { DraftUUID: string }>(SERVICE, "C_BusinessPartnerCustomerEdit", {
+      query: {
+        BusinessPartner: `'${businessPartner}'`,
+        DraftUUID: "guid'00000000-0000-0000-0000-000000000000'",
+        IsActiveEntity: "true",
+        PreserveChanges: "false",
+      },
+    });
+    return { path: entityPath(d), uuid: d.DraftUUID };
+  });
+
+  try {
+    const { firstName, lastName } = splitName(customer.name);
+    await step("PATCH C_BusinessPartnerCustomer (nome)", () =>
+      sapPatch(SERVICE, draft.path, { FirstName: firstName, LastName: lastName, SearchTerm1: lastName.toUpperCase().slice(0, 20) }),
+    );
+    const address = await step("GET to_BusinessPartnerAddress", async () => {
+      const { results } = await sapGet<{ results: Entity[] }>(SERVICE, `${draft.path}/to_BusinessPartnerAddress`);
+      return entityPath(results[0]);
+    });
+    await step("PATCH C_BusinessPartnerAddress", () =>
+      sapPatch(SERVICE, address, addressFields(customer)),
+    );
+
+    const params = `BusinessPartner='${businessPartner}'&DraftUUID=guid'${draft.uuid}'&IsActiveEntity=false`;
+    await step("POST $batch (Preparation + Activation)", async () => {
+      await sapBatch(SERVICE, [
+        `C_BusinessPartnerCustomerPreparation?${params}&SideEffectsQualifier=''`,
+        `C_BusinessPartnerCustomerActivation?${params}`,
+      ]);
+      return { ativado: true };
+    });
+  } catch (err) {
+    // Não deixa o parceiro preso num rascunho: o ativo fica como estava
+    await step("DELETE rascunho incompleto", () => sapDelete(SERVICE, draft.path)).catch(() => {});
+    throw err;
+  }
 }
 
 export type DraftState = { state: "rascunho" } | { state: "ativo"; businessPartner: string } | { state: "removido" };

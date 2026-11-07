@@ -11,7 +11,7 @@ import { CONCENTRATIONS, GENDERS } from "@/lib/product-options";
 // Ações da aba Produtos. A ficha da loja fica na BD local; o nome e o stock não se
 // alteram aqui. O preço é gravado no SAP e copiado para o Moloni (changePrice).
 // Um produto novo cria também o material no SAP (saveProduct, modo "novo").
-// TODO(Auth0): confirmar que quem chama é admin (getCurrentUser) antes de executar.
+// TODO(admin): confirmar que quem chama é admin (getCurrentUser) antes de executar.
 
 export type ProductFormState = { ok: boolean; message: string; errors?: Record<string, string> } | null;
 

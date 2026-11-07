@@ -15,7 +15,7 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
-  passwordHash String
+  passwordHash String // hash bcrypt; vazio = cliente sem acesso à loja (criado no backoffice)
   name         String
   nif          String?
   address      String?
@@ -32,8 +32,21 @@ model User {
 
   cart      Cart?
   orders    Order[]
+  sessions  Session[]
   isDemo    Boolean    @default(false) // cliente fictício dos dados de demonstração
   createdAt DateTime   @default(now())
+}
+
+// Sessão iniciada. O browser guarda um token aleatório num cookie httpOnly; aqui fica
+// só o hash, por isso quem ler a BD não consegue usar as sessões.
+model Session {
+  id        String   @id // SHA-256 do token do cookie
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Enriquecimento do produto SAP (o SAP não guarda fotos nem notas olfativas).

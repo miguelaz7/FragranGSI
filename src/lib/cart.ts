@@ -5,7 +5,8 @@ import { getStoreCatalog, type CatalogProduct } from "@/lib/catalog";
 
 // Carrinho de visitante: o browser guarda só o id do carrinho num cookie
 // httpOnly; os artigos ficam na BD local. Assim dá para comprar sem conta
-// até ao checkout, onde é pedido o início de sessão.
+// até ao checkout, onde é pedido o início de sessão. Ao entrar, o carrinho
+// fica ligado à conta e volta a aparecer noutro browser ou depois de sair.
 
 export const CART_COOKIE = "carrinho";
 export const CART_COOKIE_OPTIONS = {
@@ -18,6 +19,32 @@ export const CART_COOKIE_OPTIONS = {
 
 export async function getCartId() {
   return (await cookies()).get(CART_COOKIE)?.value ?? null;
+}
+
+/**
+ * Depois do login: o carrinho deste browser fica ligado à conta. Se estiver vazio,
+ * recupera o que o cliente tinha. Se tiver artigos, é o mais recente e substitui o antigo.
+ */
+export async function attachCartToUser(userId: string) {
+  const store = await cookies();
+  const browserId = store.get(CART_COOKIE)?.value;
+  const browserCart = browserId ? await db.cart.findUnique({ where: { id: browserId }, include: { items: true } }) : null;
+  const savedCart = await db.cart.findUnique({ where: { userId } });
+
+  // Carrinho de outra conta (mesmo browser): não pode passar para esta
+  const usable = browserCart && (!browserCart.userId || browserCart.userId === userId) ? browserCart : null;
+
+  if (usable && usable.items.length > 0) {
+    if (savedCart && savedCart.id !== usable.id) await db.cart.delete({ where: { id: savedCart.id } });
+    await db.cart.update({ where: { id: usable.id }, data: { userId } });
+  } else if (savedCart) {
+    store.set(CART_COOKIE, savedCart.id, CART_COOKIE_OPTIONS);
+  }
+}
+
+/** Ao sair, o carrinho fica guardado na conta e deixa de aparecer neste browser. */
+export async function forgetCart() {
+  (await cookies()).delete(CART_COOKIE);
 }
 
 /** Nº total de artigos, para o ícone do cabeçalho (só BD, sem SAP). */

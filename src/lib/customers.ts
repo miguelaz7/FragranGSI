@@ -2,14 +2,15 @@ import "server-only";
 import { db } from "@/lib/db";
 import type { User } from "@/generated/prisma/client";
 import { moloniCall, moloniIds } from "@/lib/integration/moloni";
-import { withLog } from "@/lib/integration/log";
-import { activateCustomerDraft, checkCustomerDraft, createCustomerDraft, deleteCustomerDraft } from "@/lib/integration/sap-customers";
+import { IntegrationError, withLog } from "@/lib/integration/log";
+import { activateCustomerDraft, checkCustomerDraft, createCustomerDraft, deleteCustomerDraft, updateSapCustomer } from "@/lib/integration/sap-customers";
 
 // Registo de clientes: guarda na BD e cria o cliente nos dois ERPs.
 // - Moloni: cliente real, usado na faturação.
 // - SAP: parceiro de negócios ativo, com o nº guardado em sapBusinessPartner.
-// Os dois passos são independentes: se um falhar, o outro continua e o erro
-// fica no monitor de integração com "Tentar novamente".
+// O Moloni vai primeiro porque valida o NIF com mais rigor do que nós: se o recusar,
+// não se grava nada. Noutras falhas, um ERP não trava o outro e o erro fica no monitor
+// de integração com "Tentar novamente".
 
 export type NewCustomer = {
   name: string;
@@ -18,6 +19,7 @@ export type NewCustomer = {
   address: string;
   postalCode: string;
   city: string;
+  passwordHash?: string; // só nos clientes registados na loja
 };
 
 const FINAL_CONSUMER_NIF = "999999990"; // NIF usado quando o cliente não indica o seu
@@ -30,6 +32,28 @@ const MOLONI_PRONTO_PAGAMENTO = 2662835;
 // Na referência do log vai o id: o nome e o email do cliente não ficam no log
 const logReference = (user: User) => `Cliente ${user.id}`;
 
+/** Dados do cliente no Moloni, iguais ao criar e ao alterar. */
+function moloniFields(user: User) {
+  return {
+    company_id: moloniIds().company_id,
+    vat: user.nif ?? FINAL_CONSUMER_NIF,
+    name: user.name,
+    language_id: MOLONI_PORTUGUESE,
+    address: user.address,
+    zip_code: user.postalCode,
+    city: user.city,
+    country_id: MOLONI_PORTUGAL,
+    email: user.email,
+    maturity_date_id: MOLONI_PRONTO_PAGAMENTO,
+    payment_method_id: MOLONI_MULTIBANCO,
+    salesman_id: 0,
+    payment_day: 0,
+    discount: 0,
+    credit_limit: 0,
+    delivery_method_id: 0,
+  };
+}
+
 async function createMoloniCustomer(user: User) {
   const retry = { action: "cliente-moloni", payload: { userId: user.id } };
   const reference = logReference(user);
@@ -40,25 +64,7 @@ async function createMoloniCustomer(user: User) {
   );
 
   const { customer_id } = await withLog({ system: "Moloni", operation: "POST customers/insert", reference, retry }, () =>
-    moloniCall<{ customer_id: number }>("customers/insert", {
-      company_id,
-      vat: user.nif ?? FINAL_CONSUMER_NIF,
-      number,
-      name: user.name,
-      language_id: MOLONI_PORTUGUESE,
-      address: user.address,
-      zip_code: user.postalCode,
-      city: user.city,
-      country_id: MOLONI_PORTUGAL,
-      email: user.email,
-      maturity_date_id: MOLONI_PRONTO_PAGAMENTO,
-      payment_method_id: MOLONI_MULTIBANCO,
-      salesman_id: 0,
-      payment_day: 0,
-      discount: 0,
-      credit_limit: 0,
-      delivery_method_id: 0,
-    }),
+    moloniCall<{ customer_id: number }>("customers/insert", { ...moloniFields(user), number }),
   );
 
   await db.user.update({ where: { id: user.id }, data: { moloniCustomerId: customer_id } });
@@ -86,13 +92,27 @@ async function createSapCustomer(user: User) {
   await db.user.update({ where: { id: user.id }, data: { sapBusinessPartner: businessPartner, sapDraftUuid: null } });
 }
 
-/** Cria o cliente na BD, no Moloni e no SAP. Devolve quais os sistemas que falharam. */
-export async function registerCustomer(data: NewCustomer) {
-  // A loja não guarda passwords: a autenticação vai ser feita pelo Auth0
-  const user = await db.user.create({ data: { ...data, passwordHash: "" } });
+/** O Moloni responde ["8 vat"] a um NIF que não aceita. */
+const isNifRejected = (err: unknown) => err instanceof IntegrationError && /\bvat\b/.test(err.message);
 
-  const [moloni, sap] = await Promise.allSettled([createMoloniCustomer(user), createSapCustomer(user)]);
-  return { moloniOk: moloni.status === "fulfilled", sapOk: sap.status === "fulfilled" };
+/** Cria o cliente na BD, no Moloni e no SAP. Se o NIF for recusado, não fica nada criado. */
+export async function registerCustomer(data: NewCustomer) {
+  // Sem password (clientes do backoffice), o cliente não consegue entrar na loja
+  const user = await db.user.create({ data: { ...data, passwordHash: data.passwordHash ?? "" } });
+
+  let moloniOk = true;
+  try {
+    await createMoloniCustomer(user);
+  } catch (err) {
+    if (isNifRejected(err)) {
+      await db.user.delete({ where: { id: user.id } });
+      return { nifRejected: true as const };
+    }
+    moloniOk = false;
+  }
+
+  const sapOk = await createSapCustomer(user).then(() => true, () => false);
+  return { nifRejected: false as const, user, moloniOk, sapOk };
 }
 
 /** Atualiza um cliente com o que aconteceu ao rascunho no SAP. Devolve-o atualizado. */
@@ -146,6 +166,58 @@ export async function deleteCustomer(userId: string): Promise<{ sapBusinessPartn
   return { sapBusinessPartner: user.sapBusinessPartner };
 }
 
+type ProfileChanges = Pick<User, "name" | "email" | "nif" | "address" | "postalCode" | "city">;
+
+async function pushToMoloni(user: User) {
+  // Sem cliente no Moloni (a criação falhou, por exemplo por causa do NIF): cria agora
+  if (!user.moloniCustomerId) return createMoloniCustomer(user);
+
+  const { company_id } = moloniIds();
+  const customer_id = user.moloniCustomerId;
+  const log = (operation: string) => ({
+    system: "Moloni" as const,
+    operation,
+    reference: logReference(user),
+    retry: { action: "cliente-moloni-dados", payload: { userId: user.id } },
+  });
+
+  // O número de cliente é obrigatório ao alterar e não está guardado na BD
+  const number = await withLog(log("POST customers/getOne"), async () => {
+    const customer = await moloniCall<{ number: string }>("customers/getOne", { company_id, customer_id });
+    return customer.number;
+  });
+  await withLog(log("POST customers/update"), () =>
+    moloniCall("customers/update", { ...moloniFields(user), customer_id, number }),
+  );
+}
+
+async function pushToSap(user: User) {
+  if (!user.sapBusinessPartner) return;
+  await updateSapCustomer(
+    user.sapBusinessPartner,
+    { name: user.name, address: user.address ?? "", postalCode: user.postalCode ?? "", city: user.city ?? "" },
+    logReference(user),
+    { action: "cliente-sap-dados", payload: { userId: user.id } },
+  );
+}
+
+/** Altera os dados do cliente, na loja ou no backoffice. O SAP não recebe o email nem o NIF. */
+export async function updateCustomer(userId: string, changes: ProfileChanges) {
+  const current = await db.user.findUniqueOrThrow({ where: { id: userId } });
+
+  let moloniOk = true;
+  try {
+    await pushToMoloni({ ...current, ...changes });
+  } catch (err) {
+    if (isNifRejected(err)) return { nifRejected: true as const };
+    moloniOk = false;
+  }
+
+  const user = await db.user.update({ where: { id: userId }, data: changes });
+  const sapOk = await pushToSap(user).then(() => true, () => false);
+  return { nifRejected: false as const, moloniOk, sapOk };
+}
+
 async function findUser(payload: unknown) {
   const { userId } = payload as { userId: string };
   return db.user.findUnique({ where: { id: userId } });
@@ -164,4 +236,15 @@ export async function retryCustomerSap(payload: unknown) {
   // O rascunho pode ter sido ativado no Fiori depois do erro
   const current = await syncDraft(user);
   if (!current.sapBusinessPartner) await createSapCustomer(current);
+}
+
+// Cada sistema repete só a sua parte. Se voltar a falhar, o erro segue para o monitor.
+export async function retryCustomerMoloniUpdate(payload: unknown) {
+  const user = await findUser(payload);
+  if (user) await pushToMoloni(user);
+}
+
+export async function retryCustomerSapUpdate(payload: unknown) {
+  const user = await findUser(payload);
+  if (user) await pushToSap(user);
 }
