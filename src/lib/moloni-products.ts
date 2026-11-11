@@ -120,7 +120,7 @@ export async function syncMoloniProducts(catalog: AdminProduct[], { forceSapPric
     if (source === "conflito") await reportConflict(product, reference);
 
     const moloniProductId = await syncArticle(product, source === "sap" ? product.price : null, reference);
-    const link = await db.moloniProduct.upsert({
+    await db.moloniProduct.upsert({
       where: { sapProduct },
       update: { moloniProductId },
       create: { sapProduct, moloniProductId },
@@ -136,8 +136,9 @@ export async function syncMoloniProducts(catalog: AdminProduct[], { forceSapPric
       if (saved) await db.moloniProduct.update({ where: { sapProduct }, data: { priceSynced: price } });
     }
 
-    // Só a diferença: reenviar o stock do SAP apagaria as vendas já descontadas
-    const entry = product.sapStock - link.sapStockSynced;
+    // Só a diferença: reenviar o stock do SAP apagaria as vendas já descontadas.
+    // O que já passou conta-se no Moloni, que é partilhado por todos os PCs.
+    const entry = product.sapStock - (await sapStockInMoloni(moloniProductId, reference));
     if (entry === 0) continue;
 
     await withLog({ system: "Moloni", operation: "POST productStocks/insert", reference, retry: SYNC_RETRY }, async () => {
@@ -146,10 +147,32 @@ export async function syncMoloniProducts(catalog: AdminProduct[], { forceSapPric
         product_id: moloniProductId,
         movement_date: new Date().toISOString().slice(0, 19).replace("T", " "),
         qty: entry,
-        notes: "Entrada de stock vinda do SAP",
+        notes: SAP_ENTRY_NOTE,
       });
       return { qty: entry };
     });
-    await db.moloniProduct.update({ where: { sapProduct }, data: { sapStockSynced: product.sapStock } });
   }
+}
+
+const SAP_ENTRY_NOTE = "Entrada de stock vinda do SAP";
+const PAGE = 50;
+
+/**
+ * Stock do SAP que já passou para o Moloni: soma dos movimentos de entrada que a
+ * sincronização criou (marcados com SAP_ENTRY_NOTE). Antes guardava-se este total na
+ * BD local, mas cada PC tem a sua BD e o Moloni é um só: num PC novo o total era 0 e
+ * o stock do SAP entrava outra vez em duplicado.
+ */
+async function sapStockInMoloni(productId: number, reference: string) {
+  const { company_id } = moloniIds();
+  return withLog({ system: "Moloni", operation: "POST productStocks/getAll", reference, retry: SYNC_RETRY }, async () => {
+    let total = 0;
+    for (let offset = 0; ; offset += PAGE) {
+      const page = await moloniCall<{ qty: number; notes: string }[]>("productStocks/getAll", {
+        company_id, product_id: productId, qty: PAGE, offset,
+      });
+      total += page.filter((m) => m.notes === SAP_ENTRY_NOTE).reduce((sum, m) => sum + Number(m.qty), 0);
+      if (page.length < PAGE) return total;
+    }
+  });
 }

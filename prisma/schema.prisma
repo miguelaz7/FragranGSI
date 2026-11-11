@@ -67,12 +67,12 @@ model ProductInfo {
 }
 
 // Ligação do material SAP ao artigo do Moloni. O stock de venda vive no Moloni:
-// as vendas descontam lá e as entradas de stock são feitas no SAP. O campo
-// sapStockSynced é o stock do SAP já passado para o Moloni: a diferença é a nova entrada.
+// as vendas descontam lá e as entradas de stock são feitas no SAP. O stock do SAP já
+// passado para o Moloni conta-se nos movimentos do Moloni (ver moloni-products.ts),
+// não aqui: cada PC tem a sua BD e o Moloni é partilhado.
 model MoloniProduct {
   sapProduct      String @id
   moloniProductId Int    @unique
-  sapStockSynced  Float  @default(0)
   // Último preço igual nos dois sistemas (com IVA): mostra de que lado veio uma alteração
   priceSynced     Float?
 }
