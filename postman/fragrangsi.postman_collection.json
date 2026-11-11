@@ -1,0 +1,1718 @@
+{
+  "info": {
+    "name": "fragranGSI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "codigo",
+      "value": "PERF001-093"
+    },
+    {
+      "key": "clienteId",
+      "value": ""
+    },
+    {
+      "key": "encomendaId",
+      "value": "1"
+    },
+    {
+      "key": "moloniClientId",
+      "value": ""
+    },
+    {
+      "key": "moloniClientSecret",
+      "value": ""
+    },
+    {
+      "key": "moloniUsername",
+      "value": ""
+    },
+    {
+      "key": "moloniPassword",
+      "value": ""
+    },
+    {
+      "key": "moloniToken",
+      "value": ""
+    },
+    {
+      "key": "moloniRefresh",
+      "value": ""
+    },
+    {
+      "key": "companyId",
+      "value": "403295"
+    },
+    {
+      "key": "categoryId",
+      "value": "10661082"
+    },
+    {
+      "key": "productId",
+      "value": "244956655"
+    },
+    {
+      "key": "customerId",
+      "value": "163193339"
+    },
+    {
+      "key": "documentId",
+      "value": ""
+    },
+    {
+      "key": "sapBaseUrl",
+      "value": "https://s20.gb.ucc.cit.tum.de/sap/opu/odata/sap"
+    },
+    {
+      "key": "sapClient",
+      "value": "305"
+    },
+    {
+      "key": "sapUser",
+      "value": "LEARN-093"
+    },
+    {
+      "key": "sapPassword",
+      "value": ""
+    },
+    {
+      "key": "sapPlant",
+      "value": "HD00"
+    },
+    {
+      "key": "sapPartner",
+      "value": "1003856"
+    }
+  ],
+  "item": [
+    {
+      "name": "Loja",
+      "item": [
+        {
+          "name": "Catálogo da loja",
+          "request": {
+            "method": "GET",
+            "description": "Moloni (nome, preço, stock) + ficha local. Só perfumes visíveis e com preço.",
+            "url": {
+              "raw": "{{baseUrl}}/api/produtos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "produtos"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Um perfume",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/api/produtos/{{codigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "produtos",
+                "{{codigo}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Assistente IA",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ocasiao\": \"Noite\",\n  \"notas\": \"Amadeiradas\",\n  \"intensidade\": \"Intensa\",\n  \"texto\": \"algo quente para o inverno\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/recomendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recomendar"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Foto de produto",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/fotos/{{codigo}}.webp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fotos",
+                "{{codigo}}.webp"
+              ],
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Backoffice",
+      "item": [
+        {
+          "name": "Produtos (SAP + Moloni + ficha)",
+          "request": {
+            "method": "GET",
+            "description": "price = PR00 do SAP; moloniPrice; sapStock = entradas no SAP; stock = vendável no Moloni.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/produtos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "produtos"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Clientes",
+          "request": {
+            "method": "GET",
+            "description": "Mapeamento sapBusinessPartner / moloniCustomerId. demo=false|true.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/clientes?demo=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes"
+              ],
+              "query": [
+                {
+                  "key": "demo",
+                  "value": "false",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Um cliente",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/clientes/{{clienteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "clientes",
+                "{{clienteId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Encomendas",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/encomendas?limit=50&status=Pendente&demo=false",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "encomendas"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": false
+                },
+                {
+                  "key": "status",
+                  "value": "Pendente",
+                  "disabled": true
+                },
+                {
+                  "key": "demo",
+                  "value": "false",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Uma encomenda",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/encomendas/{{encomendaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "encomendas",
+                "{{encomendaId}}"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Log de integração",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/integracao?limit=50&system=SAP&status=Erro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "integracao"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": false
+                },
+                {
+                  "key": "system",
+                  "value": "SAP",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "Erro",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analista IA",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"text\": \"Qual foi o perfume mais vendido esta semana?\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/analista",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "analista"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Moloni",
+      "description": "Preencher moloniClientId/Secret/Username/Password nas variáveis da coleção (valores do .env) — não fazer commit com eles.",
+      "item": [
+        {
+          "name": "1. Token (password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) {",
+                  "  pm.collectionVariables.set(\"moloniToken\", j.access_token);",
+                  "  pm.collectionVariables.set(\"moloniRefresh\", j.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Guarda o token em {{moloniToken}} (válido 1 h). Pedir outro invalida o da app: se a app estiver a correr, ela pede um novo sozinha.",
+            "url": {
+              "raw": "https://api.moloni.pt/v1/grant/?grant_type=password&client_id={{moloniClientId}}&client_secret={{moloniClientSecret}}&username={{moloniUsername}}&password={{moloniPassword}}",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "grant",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{moloniClientId}}"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{moloniClientSecret}}"
+                },
+                {
+                  "key": "username",
+                  "value": "{{moloniUsername}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{moloniPassword}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "1b. Renovar token (refresh_token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.access_token) {",
+                  "  pm.collectionVariables.set(\"moloniToken\", j.access_token);",
+                  "  pm.collectionVariables.set(\"moloniRefresh\", j.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Guarda o token em {{moloniToken}} (válido 1 h). Pedir outro invalida o da app: se a app estiver a correr, ela pede um novo sozinha.",
+            "url": {
+              "raw": "https://api.moloni.pt/v1/grant/?grant_type=refresh_token&client_id={{moloniClientId}}&client_secret={{moloniClientSecret}}&refresh_token={{moloniRefresh}}",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "grant",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token"
+                },
+                {
+                  "key": "client_id",
+                  "value": "{{moloniClientId}}"
+                },
+                {
+                  "key": "client_secret",
+                  "value": "{{moloniClientSecret}}"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{moloniRefresh}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Empresas",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/companies/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "companies",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Produtos",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"qty\": 50,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/products/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Produtos da categoria Perfumes",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"category_id\": \"{{categoryId}}\",\n  \"qty\": 50,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/products/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Um produto (com stock)",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"product_id\": \"{{productId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/products/getOne/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "getOne",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Produto por referência",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"reference\": \"PERF001-093\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/products/getByReference/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "products",
+                "getByReference",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Movimentos de stock",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"product_id\": \"{{productId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/productStocks/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "productStocks",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"parent_id\": 0\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/productCategories/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "productCategories",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clientes",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"qty\": 50,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/customers/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "customers",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Um cliente",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"customer_id\": \"{{customerId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/customers/getOne/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "customers",
+                "getOne",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cliente por NIF",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"vat\": \"999999990\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/customers/getByVat/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "customers",
+                "getByVat",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pesquisar cliente",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"search\": \"Teste\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/customers/getBySearch/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "customers",
+                "getBySearch",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Faturas-recibo",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"qty\": 50,\n  \"offset\": 0\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/invoiceReceipts/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "invoiceReceipts",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Uma fatura-recibo",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"document_id\": \"{{documentId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/invoiceReceipts/getOne/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "invoiceReceipts",
+                "getOne",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Link do PDF de um documento",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\",\n  \"document_id\": \"{{documentId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/documents/getPDFLink/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "documents",
+                "getPDFLink",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Séries de documentos",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/documentSets/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "documentSets",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Taxas de IVA",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/taxes/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "taxes",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unidades",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/measurementUnits/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "measurementUnits",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Armazéns",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/warehouses/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "warehouses",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Métodos de pagamento",
+          "request": {
+            "method": "POST",
+            "description": "",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{companyId}}\"\n}"
+            },
+            "url": {
+              "raw": "https://api.moloni.pt/v1/paymentMethods/getAll/?access_token={{moloniToken}}&json=true",
+              "protocol": "https",
+              "host": [
+                "api",
+                "moloni",
+                "pt"
+              ],
+              "path": [
+                "v1",
+                "paymentMethods",
+                "getAll",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "access_token",
+                  "value": "{{moloniToken}}"
+                },
+                {
+                  "key": "json",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAP",
+      "description": "OData v2 do S20. Autenticação Basic com {{sapUser}}/{{sapPassword}} (preencher a password nas variáveis; não fazer commit com ela). Para POST/PATCH é preciso primeiro o pedido \"Token CSRF\".",
+      "auth": {
+        "type": "basic",
+        "basic": [
+          {
+            "key": "username",
+            "value": "{{sapUser}}",
+            "type": "string"
+          },
+          {
+            "key": "password",
+            "value": "{{sapPassword}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Token CSRF",
+          "request": {
+            "method": "GET",
+            "description": "Devolve o cabeçalho x-csrf-token (e cookies). Necessário antes de qualquer POST/PATCH/DELETE.",
+            "header": [
+              {
+                "key": "x-csrf-token",
+                "value": "fetch"
+              }
+            ],
+            "url": {
+              "raw": "{{sapBaseUrl}}/UI_PRODUCTLIST/?sap-client={{sapClient}}",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "UI_PRODUCTLIST"
+              ],
+              "query": [
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Metadata (entidades e campos)",
+          "request": {
+            "method": "GET",
+            "description": "Trocar UI_PRODUCTLIST por outro serviço para ver as suas entidades.",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/UI_PRODUCTLIST/$metadata?sap-client={{sapClient}}",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "UI_PRODUCTLIST",
+                "$metadata"
+              ],
+              "query": [
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Produtos do grupo",
+          "request": {
+            "method": "GET",
+            "description": "Uma linha por produto x centro. $count e $select não são permitidos.",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/UI_PRODUCTLIST/ProductList?$filter=Plant eq '{{sapPlant}}' and startswith(Product,'PERF')&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "UI_PRODUCTLIST",
+                "ProductList"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "Plant eq '{{sapPlant}}' and startswith(Product,'PERF')"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Um produto",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/UI_PRODUCTLIST/ProductList?$filter=Plant eq '{{sapPlant}}' and Product eq '{{codigo}}'&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "UI_PRODUCTLIST",
+                "ProductList"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "Plant eq '{{sapPlant}}' and Product eq '{{codigo}}'"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stock de um produto",
+          "request": {
+            "method": "GET",
+            "description": "Filtro Plant obrigatório. Quantidade em MatlWrhsStkQtyInMatlBaseUnit (linhas Unrestricted-Use Stock).",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/C_STOCKQUANTITYVALUEBYTYPE_CDS/C_STOCKQUANTITYVALUEBYTYPE?$filter=Plant eq '{{sapPlant}}' and Material eq '{{codigo}}'&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "C_STOCKQUANTITYVALUEBYTYPE_CDS",
+                "C_STOCKQUANTITYVALUEBYTYPE"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "Plant eq '{{sapPlant}}' and Material eq '{{codigo}}'"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stock do grupo",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/C_STOCKQUANTITYVALUEBYTYPE_CDS/C_STOCKQUANTITYVALUEBYTYPE?$filter=Plant eq '{{sapPlant}}' and startswith(Material,'PERF')&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "C_STOCKQUANTITYVALUEBYTYPE_CDS",
+                "C_STOCKQUANTITYVALUEBYTYPE"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "Plant eq '{{sapPlant}}' and startswith(Material,'PERF')"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Preço PR00 de um produto",
+          "request": {
+            "method": "GET",
+            "description": "Não acrescentar IsActiveEntity eq true ao filtro (timeout). Preço em ConditionRateValue.",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/SD_PRICING_CONDITIONRECORD_SRV/C_SlsPricingConditionRecordTP?$filter=ConditionTable eq '304' and ConditionType eq 'PR00' and SalesOrganization eq 'DS00' and DistributionChannel eq 'WH' and Material eq '{{codigo}}'&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "SD_PRICING_CONDITIONRECORD_SRV",
+                "C_SlsPricingConditionRecordTP"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "ConditionTable eq '304' and ConditionType eq 'PR00' and SalesOrganization eq 'DS00' and DistributionChannel eq 'WH' and Material eq '{{codigo}}'"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clientes criados pelo grupo",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/MD_CUSTOMER_MASTER_SRV_01/C_BusinessPartnerCustomer?$filter=CreatedByUser eq '{{sapUser}}' and IsActiveEntity eq true&$orderby=CreationDate desc&$top=20&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "MD_CUSTOMER_MASTER_SRV_01",
+                "C_BusinessPartnerCustomer"
+              ],
+              "query": [
+                {
+                  "key": "$filter",
+                  "value": "CreatedByUser eq '{{sapUser}}' and IsActiveEntity eq true"
+                },
+                {
+                  "key": "$orderby",
+                  "value": "CreationDate desc"
+                },
+                {
+                  "key": "$top",
+                  "value": "20"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Um cliente",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/MD_CUSTOMER_MASTER_SRV_01/C_BusinessPartnerCustomer(BusinessPartner='{{sapPartner}}',DraftUUID=guid'00000000-0000-0000-0000-000000000000',IsActiveEntity=true)?$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "MD_CUSTOMER_MASTER_SRV_01",
+                "C_BusinessPartnerCustomer(BusinessPartner='{{sapPartner}}',DraftUUID=guid'00000000-0000-0000-0000-000000000000',IsActiveEntity=true)"
+              ],
+              "query": [
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Morada de um cliente",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/MD_CUSTOMER_MASTER_SRV_01/C_BusinessPartnerCustomer(BusinessPartner='{{sapPartner}}',DraftUUID=guid'00000000-0000-0000-0000-000000000000',IsActiveEntity=true)/to_BusinessPartnerAddress?$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "MD_CUSTOMER_MASTER_SRV_01",
+                "C_BusinessPartnerCustomer(BusinessPartner='{{sapPartner}}',DraftUUID=guid'00000000-0000-0000-0000-000000000000',IsActiveEntity=true)",
+                "to_BusinessPartnerAddress"
+              ],
+              "query": [
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Encomendas de venda",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/SD_F1814_SO_FS_SRV/C_Salesorderfs?$top=20&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "SD_F1814_SO_FS_SRV",
+                "C_Salesorderfs"
+              ],
+              "query": [
+                {
+                  "key": "$top",
+                  "value": "20"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Linhas de encomendas",
+          "request": {
+            "method": "GET",
+            "description": "",
+            "header": [],
+            "url": {
+              "raw": "{{sapBaseUrl}}/SD_F1814_SO_FS_SRV/C_Salesorderitemfs?$top=20&$format=json&sap-client={{sapClient}}&sap-language=PT",
+              "host": [
+                "{{sapBaseUrl}}"
+              ],
+              "path": [
+                "SD_F1814_SO_FS_SRV",
+                "C_Salesorderitemfs"
+              ],
+              "query": [
+                {
+                  "key": "$top",
+                  "value": "20"
+                },
+                {
+                  "key": "$format",
+                  "value": "json"
+                },
+                {
+                  "key": "sap-client",
+                  "value": "{{sapClient}}"
+                },
+                {
+                  "key": "sap-language",
+                  "value": "PT"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
