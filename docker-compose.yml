@@ -1,0 +1,46 @@
+# A app (loja + backoffice) e o n8n, que a chama de 10 em 10 minutos para sincronizar
+# o SAP com o Moloni (POST /api/sync).
+#
+# Arrancar tudo:       docker compose up -d --build   → app em http://localhost:3000
+#                                                        n8n em http://localhost:5678
+# Importar o workflow (uma vez):
+#   docker compose exec n8n n8n import:workflow --input=/workflows/sincronizacao-sap-moloni.json
+# Depois de alterar o código, o --build volta a gerar a imagem da app.
+# Para programar continua a usar-se o npm run dev (pare primeiro a app do Docker:
+# docker compose stop app, porque as duas usam a porta 3000).
+services:
+  app:
+    build: .
+    container_name: fragrangsi-app
+    restart: unless-stopped
+    # As credenciais (SAP, Moloni, Supabase, Gemini) só entram aqui, ao arrancar
+    env_file: .env
+    ports:
+      - "3000:3000"
+    volumes:
+      # As fotos dos produtos são as mesmas do npm run dev
+      - ./uploads:/app/uploads
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: fragrangsi-n8n
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=Europe/Lisbon
+      - TZ=Europe/Lisbon
+      # O workflow lê o token e o endereço da app com {{ $env.… }}: assim o token
+      # fica só no .env do projeto e não no workflow nem numa credencial à mão
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - SYNC_TOKEN=${SYNC_TOKEN:?Falta SYNC_TOKEN no .env}
+      # Dentro do Docker, a app chama-se pelo nome do serviço
+      - APP_URL=http://app:3000
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/workflows:ro
+
+volumes:
+  n8n_data:

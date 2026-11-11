@@ -1,0 +1,41 @@
+{
+  "name": "fragranGSI — Sincronização SAP ↔ Moloni",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 10 }]
+        }
+      },
+      "id": "5b0f1c7e-2d6a-4f61-9c55-0a1f3e7d9b01",
+      "name": "De 10 em 10 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.APP_URL }}/api/sync",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Authorization", "value": "=Bearer {{ $env.SYNC_TOKEN }}" }]
+        },
+        "options": { "timeout": 300000 }
+      },
+      "id": "8c3e2a91-6f4b-4d2e-a8b7-1e5c9d0f2a02",
+      "name": "Sincronizar SAP ↔ Moloni",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 0],
+      "notes": "APP_URL e SYNC_TOKEN vêm do docker-compose.yml (o token do .env do projeto)."
+    }
+  ],
+  "connections": {
+    "De 10 em 10 minutos": {
+      "main": [[{ "node": "Sincronizar SAP ↔ Moloni", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1", "timezone": "Europe/Lisbon" },
+  "active": false
+}
