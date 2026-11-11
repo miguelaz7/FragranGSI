@@ -2,31 +2,23 @@
 
 import { refresh, updateTag } from "next/cache";
 import { db } from "@/lib/db";
-import { getCatalog } from "@/lib/catalog";
 import { sapGet } from "@/lib/integration/sap";
 import { moloniCall } from "@/lib/integration/moloni";
 import { withLog } from "@/lib/integration/log";
 import { retryCustomerMoloni, retryCustomerMoloniUpdate, retryCustomerSap, retryCustomerSapUpdate } from "@/lib/customers";
-import { syncMoloniProducts } from "@/lib/moloni-products";
 import { retryPrice } from "@/lib/prices";
 import { retryMaterial } from "@/lib/products";
 import { retryStockEntry } from "@/lib/stock";
+import { runFullSync, syncCatalog } from "@/lib/sync";
 
 // Ações do monitor de integração. Os erros não são relançados: cada chamada
 // já fica registada no IntegrationLog por withLog() e aparece na tabela.
 // TODO(admin): confirmar que quem chama é admin (getCurrentUser) antes de executar.
 
-/** Lê de novo o SAP e passa para o Moloni os artigos, os preços e as entradas de stock. */
-async function syncCatalog() {
-  updateTag("catalogo"); // a cache do catálogo deixa de valer
-  await syncMoloniProducts(await getCatalog()); // e é lida já de novo
-  updateTag("catalogo"); // o stock do Moloni pode ter mudado
-}
-
 // "Tentar novamente": cada operação repetível tem aqui a sua função,
 // identificada pelo retryAction guardado no registo do erro.
 const RETRY_HANDLERS: Record<string, (payload: unknown) => Promise<void>> = {
-  "sync-catalogo": syncCatalog,
+  "sync-catalogo": async () => void (await syncCatalog(updateTag)),
   "cliente-moloni": retryCustomerMoloni,
   "cliente-sap": retryCustomerSap,
   "cliente-moloni-dados": retryCustomerMoloniUpdate,
@@ -40,9 +32,10 @@ export async function canRetry(action: string | null) {
   return !!action && action in RETRY_HANDLERS;
 }
 
+/** Botão «Sincronizar com o SAP»: o mesmo que o n8n faz de X em X minutos (src/lib/sync.ts). */
 export async function syncCatalogNow() {
   try {
-    await syncCatalog();
+    await runFullSync(updateTag);
   } catch {}
   refresh();
 }

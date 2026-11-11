@@ -1,0 +1,16 @@
+# Fica fora da imagem: segredos, dados locais e o que o Docker volta a gerar
+.env
+.env.*
+!.env.example
+*.db
+*.db-journal
+*.db.backup-*
+uploads
+node_modules
+.next
+src/generated
+.git
+*.log
+mockups
+docs
+postman
