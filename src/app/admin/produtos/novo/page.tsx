@@ -4,8 +4,8 @@ import { ProductForm } from "@/components/admin/ProductForm";
 
 export const metadata: Metadata = { title: "Novo produto" };
 
-// Novo produto: guarda a ficha da loja e cria o material no SAP e o artigo no Moloni.
-// O stock e o primeiro preço são criados à mão no SAP (a ficha mostra os passos).
+// Novo produto: guarda a ficha da loja e cria no SAP o material, o preço e o stock
+// inicial, e no Moloni o artigo.
 export default function NovoProdutoPage() {
   return (
     <>
@@ -13,8 +13,8 @@ export default function NovoProdutoPage() {
         <Link href="/admin/produtos" className="text-sm text-admin-muted hover:text-admin-text">← Produtos</Link>
         <h1 className="text-[28px] font-bold">Novo produto</h1>
         <span className="max-w-[640px] text-sm text-admin-muted">
-          Preencha a ficha da loja. O material é criado no SAP e o artigo no Moloni. A seguir, o backoffice indica como
-          lançar o stock e criar o preço; o perfume aparece na loja quando tiver preço.
+          Preencha a ficha da loja, o preço e o stock inicial. O material, o preço e a entrada de stock são criados no SAP
+          e copiados para o artigo no Moloni; o perfume aparece na loja quando tiver preço.
         </span>
       </div>
       <section className="border border-admin-line bg-admin-card p-[22px]">

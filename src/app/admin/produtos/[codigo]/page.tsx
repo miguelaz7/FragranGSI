@@ -8,6 +8,7 @@ import { getCatalog } from "@/lib/catalog";
 import { formatEur } from "@/lib/format";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { PriceForm } from "@/components/admin/PriceForm";
+import { StockForm } from "@/components/admin/StockForm";
 import { SapSteps } from "@/components/admin/SapSteps";
 import { setVisible } from "../actions";
 
@@ -50,7 +51,7 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
 
       {created && sapResult !== "0" && (
         <p role="status" className="border border-[#B7DCC4] bg-[#DDF0E4] p-4 text-sm text-[#14532D]">
-          Ficha e material criados. O perfume aparece na loja quando tiver preço.
+          Produto criado no SAP e no Moloni. Aparece na loja quando tiver preço; confirme abaixo o preço e o stock.
         </p>
       )}
       {created && sapResult === "0" && (
@@ -61,7 +62,7 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
       )}
 
       <section className={card}>
-        <h2 className="text-base font-bold">Dados do SAP <span className="font-normal text-admin-muted">(o nome e o stock alteram-se no SAP)</span></h2>
+        <h2 className="text-base font-bold">Dados do SAP <span className="font-normal text-admin-muted">(o preço e as entradas de stock gravam-se no SAP e copiam-se para o Moloni)</span></h2>
         {sapError ? (
           <p className="text-sm text-erro">Não foi possível ler o SAP agora. Ver o monitor de integração.</p>
         ) : sap ? (
@@ -72,7 +73,8 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
             <div><dt className="text-admin-muted">Entradas de stock (SAP)</dt><dd className="font-semibold">{sap.sapStock} un.</dd></div>
             <div><dt className="text-admin-muted">Stock de venda (Moloni)</dt><dd className="font-semibold">{sap.stock} un.</dd></div>
           </dl>
-          {sap.price != null && <PriceForm sapProduct={sapProduct} price={sap.price} />}
+          <PriceForm sapProduct={sapProduct} price={sap.price} />
+          <StockForm sapProduct={sapProduct} />
           </>
         ) : (
           <p className="text-sm text-admin-muted">Este material ainda não existe no SAP (ou ainda não foi sincronizado).</p>
@@ -80,7 +82,7 @@ async function Product({ params, searchParams }: Pick<PageProps<"/admin/produtos
       </section>
 
       {!sapError && (
-        <SapSteps sapProduct={sapProduct} missing={{ material: !sap, stock: !sap || sap.sapStock <= 0, price: !sap || sap.price == null }} />
+        <SapSteps sapProduct={sapProduct} missing={{ material: !sap }} />
       )}
 
       <section className={card}>

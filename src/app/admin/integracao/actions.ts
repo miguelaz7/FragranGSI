@@ -10,6 +10,7 @@ import { retryCustomerMoloni, retryCustomerMoloniUpdate, retryCustomerSap, retry
 import { syncMoloniProducts } from "@/lib/moloni-products";
 import { retryPrice } from "@/lib/prices";
 import { retryMaterial } from "@/lib/products";
+import { retryStockEntry } from "@/lib/stock";
 
 // Ações do monitor de integração. Os erros não são relançados: cada chamada
 // já fica registada no IntegrationLog por withLog() e aparece na tabela.
@@ -32,6 +33,7 @@ const RETRY_HANDLERS: Record<string, (payload: unknown) => Promise<void>> = {
   "cliente-sap-dados": retryCustomerSapUpdate,
   "preco-sap": retryPrice,
   "material-sap": retryMaterial,
+  "stock-sap": retryStockEntry,
 };
 
 export async function canRetry(action: string | null) {

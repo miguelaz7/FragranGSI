@@ -53,6 +53,18 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
             <span className="text-xs font-normal text-admin-muted">Fica como descrição do material no SAP.</span>
             {error("name")}
           </label>
+          <label className={label}>
+            Preço de venda (com IVA, €)
+            <input {...field("price")} inputMode="decimal" placeholder="ex.: 65,00" className={input} autoComplete="off" />
+            <span className="text-xs font-normal text-admin-muted">Cria o preço PR00 no SAP. Sem preço, o perfume não aparece na loja.</span>
+            {error("price")}
+          </label>
+          <label className={label}>
+            Stock inicial (unidades)
+            <input {...field("stock")} type="number" min={0} max={10000} defaultValue={0} className={input} />
+            <span className="text-xs font-normal text-admin-muted">Entrada de stock no SAP (movimento 561), copiada para o Moloni.</span>
+            {error("stock")}
+          </label>
         </div>
       ) : (
         <input type="hidden" name="sapProduct" value={sapProduct} />
@@ -142,7 +154,7 @@ export function ProductForm({ mode, sapProduct, info }: { mode: "novo" | "editar
 
       <div className="flex flex-wrap items-center gap-4">
         <button type="submit" disabled={pending} className="h-10 bg-admin-text px-6 text-sm font-semibold text-white hover:bg-black disabled:opacity-60">
-          {pending ? (mode === "novo" ? "A criar no SAP…" : "A guardar…") : mode === "novo" ? "Criar produto" : "Guardar ficha"}
+          {pending ? (mode === "novo" ? "A criar no SAP e no Moloni…" : "A guardar…") : mode === "novo" ? "Criar produto" : "Guardar ficha"}
         </button>
         {state && (
           <span role="status" className={`text-sm ${state.ok ? "text-sucesso" : "text-erro"}`}>{state.message}</span>

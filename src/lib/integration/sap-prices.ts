@@ -1,6 +1,6 @@
 import "server-only";
 import { IntegrationError, withLog } from "./log";
-import { parseODataDate, sapBatch, sapConfig, sapGet, sapPatch, sapPost } from "./sap";
+import { parseODataDate, sapBatch, sapConfig, sapDelete, sapGet, sapPatch, sapPost } from "./sap";
 
 // Altera o preço (condição PR00) de um material no SAP, como a app Manage Prices:
 // abre o registo em rascunho, muda o valor e ativa. Enquanto o rascunho está aberto,
@@ -39,21 +39,12 @@ export async function updateSapPrice(sapProduct: string, price: number, referenc
   const current = records.find(
     (r) => parseODataDate(r.ConditionValidityStartDate) <= now && parseODataDate(r.ConditionValidityEndDate) >= now,
   );
-  if (!current) throw new IntegrationError("SAP", "Este material não tem um preço PR00 válido. Crie-o em Manage Prices.");
+  // Ainda sem preço (perfume novo): cria o primeiro registo PR00
+  if (!current) return createSapPrice(sapProduct, price, step);
 
   const uuid = current.ConditionRecordUUID;
-  const draft = `C_SlsPricingConditionRecordTP(ConditionRecordUUID=guid'${uuid}',IsActiveEntity=false)`;
-  const params = `ConditionRecordUUID=guid'${uuid}'&IsActiveEntity=false`;
-
-  // Tal como nos clientes, as duas operações têm de ir no mesmo $batch
-  const activate = () =>
-    step("POST $batch (Preparation + Activation)", async () => {
-      const d = await sapBatch<{ ConditionRateAmount: string }>(SERVICE, [
-        `C_SlsPricingConditionRecordTPPreparation?${params}&SideEffectsQualifier=''`,
-        `C_SlsPricingConditionRecordTPActivation?${params}`,
-      ]);
-      return { amount: Number(d.ConditionRateAmount) };
-    });
+  const draft = draftKey(uuid);
+  const activate = () => activateDraft(uuid, step);
 
   await step("POST Editconditionrecord", async () => {
     // Aqui o UUID é um parâmetro de texto, não um guid
@@ -75,5 +66,50 @@ export async function updateSapPrice(sapProduct: string, price: number, referenc
   const { amount } = await activate();
   if (amount !== price) {
     throw new IntegrationError("SAP", `O SAP ficou com ${amount} € em vez de ${price} €.`);
+  }
+}
+
+type Step = <T>(operation: string, call: () => Promise<T>) => Promise<T>;
+
+const draftKey = (uuid: string) => `C_SlsPricingConditionRecordTP(ConditionRecordUUID=guid'${uuid}',IsActiveEntity=false)`;
+
+/** Ativa um rascunho de preço. Tal como nos clientes, as duas operações têm de ir no mesmo $batch. */
+function activateDraft(uuid: string, step: Step) {
+  const params = `ConditionRecordUUID=guid'${uuid}'&IsActiveEntity=false`;
+  return step("POST $batch (Preparation + Activation)", async () => {
+    const d = await sapBatch<{ ConditionRateAmount: string }>(SERVICE, [
+      `C_SlsPricingConditionRecordTPPreparation?${params}&SideEffectsQualifier=''`,
+      `C_SlsPricingConditionRecordTPActivation?${params}`,
+    ]);
+    return { amount: Number(d.ConditionRateAmount) };
+  });
+}
+
+/**
+ * Primeiro preço de um material, como "Criar" na app Manage Prices (testado a 11/11 no
+ * PERF004-093): POST cria o rascunho com a chave da tabela 304 e o SAP preenche o resto
+ * (EUR, por 1 unidade, válido de hoje até 31/12/9999) → PATCH do valor → $batch com
+ * Preparation + Activation. Fica Liberado, sem aprovação. Se já houver um preço ativo
+ * nessas datas, o SAP fecha-o na véspera.
+ */
+async function createSapPrice(sapProduct: string, price: number, step: Step) {
+  const { salesOrg, channel } = sapConfig();
+  const { ConditionRecordUUID: uuid } = await step("POST C_SlsPricingConditionRecordTP (novo PR00)", () =>
+    sapPost<{ ConditionRecordUUID: string }>(SERVICE, "C_SlsPricingConditionRecordTP", {
+      body: { ConditionType: "PR00", ConditionTable: "304", SalesOrganization: salesOrg, DistributionChannel: channel, Material: sapProduct },
+    }),
+  );
+
+  try {
+    // O rascunho vem sem unidade; EA é a unidade base dos nossos materiais
+    await step("PATCH ConditionRateAmount", () =>
+      sapPatch(SERVICE, draftKey(uuid), { ConditionRateAmount: price.toFixed(2), ConditionQuantityUnit: "EA" }),
+    );
+    const { amount } = await activateDraft(uuid, step);
+    if (amount !== price) throw new IntegrationError("SAP", `O SAP ficou com ${amount} € em vez de ${price} €.`);
+  } catch (err) {
+    // Um rascunho esquecido bloquearia as alterações seguintes ("rascunho aberto")
+    await sapDelete(SERVICE, draftKey(uuid)).catch(() => {});
+    throw err;
   }
 }

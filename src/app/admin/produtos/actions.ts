@@ -6,11 +6,12 @@ import { db } from "@/lib/db";
 import { findPhotoFor, savePhoto } from "@/lib/photos";
 import { changeProductPrice } from "@/lib/prices";
 import { createProductInSap } from "@/lib/products";
+import { addStockEntry } from "@/lib/stock";
 import { CONCENTRATIONS, GENDERS } from "@/lib/product-options";
 
-// Ações da aba Produtos. A ficha da loja fica na BD local; o nome e o stock não se
-// alteram aqui. O preço é gravado no SAP e copiado para o Moloni (changePrice).
-// Um produto novo cria também o material no SAP (saveProduct, modo "novo").
+// Ações da aba Produtos. A ficha da loja fica na BD. O preço e as entradas de stock
+// são gravados no SAP e copiados para o Moloni (changePrice, addStock). Um produto
+// novo cria também no SAP o material, o primeiro preço e o stock inicial (saveProduct, modo "novo").
 // TODO(admin): confirmar que quem chama é admin (getCurrentUser) antes de executar.
 
 export type ProductFormState = { ok: boolean; message: string; errors?: Record<string, string> } | null;
@@ -21,6 +22,11 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
   const mode = text(fd, "mode"); // "novo" | "editar"
   const sapProduct = text(fd, "sapProduct").toUpperCase();
   const name = text(fd, "name"); // só no modo "novo": vai para a descrição do material no SAP
+  // Só no modo "novo": primeiro preço (com IVA) e stock inicial, gravados no SAP
+  const priceText = text(fd, "price").replace(",", ".");
+  const price = priceText ? Number(Number(priceText).toFixed(2)) : null;
+  const stockText = text(fd, "stock");
+  const stock = stockText ? Number(stockText) : 0;
   const data = {
     family: text(fd, "family"),
     gender: text(fd, "gender"),
@@ -41,6 +47,8 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
     errors.sapProduct = `Código SAP inválido: tem de começar por ${prefix} (ex.: ${prefix}002-093).`;
   }
   if (mode === "novo" && (!name || name.length > 40)) errors.name = "Indique o nome do perfume (máx. 40 caracteres).";
+  if (mode === "novo" && price !== null && !(price > 0 && price <= 9999.99)) errors.price = "Preço entre 0,01 € e 9 999,99 €.";
+  if (mode === "novo" && !(Number.isInteger(stock) && stock >= 0 && stock <= MAX_STOCK_ENTRY)) errors.stock = `Quantidade inteira entre 0 e ${MAX_STOCK_ENTRY}.`;
   if (!data.family) errors.family = "Indique a família olfativa.";
   if (!GENDERS.some((g) => g.value === data.gender)) errors.gender = "Escolha o género.";
   if (!CONCENTRATIONS.includes(data.concentration)) errors.concentration = "Escolha a concentração.";
@@ -80,7 +88,7 @@ export async function saveProduct(_prev: ProductFormState, fd: FormData): Promis
 
   if (mode === "novo") {
     // A ficha fica guardada mesmo que o SAP falhe: o erro fica no monitor com "Tentar novamente"
-    const sapOk = await createProductInSap(sapProduct, name).then(() => true, () => false);
+    const sapOk = await createProductInSap(sapProduct, name, price, stock).then(() => true, () => false);
     redirect(`/admin/produtos/${encodeURIComponent(sapProduct)}?criado=1&sap=${sapOk ? 1 : 0}`);
   }
   refresh();
@@ -105,6 +113,25 @@ export async function setFeatured(fd: FormData) {
   refresh();
 }
 
+const MAX_STOCK_ENTRY = 10000;
+
+export type StockFormState = { ok: boolean; message: string } | null;
+
+/** Entrada de stock: lançada no SAP (movimento 561) e copiada para o Moloni. */
+export async function addStock(_prev: StockFormState, fd: FormData): Promise<StockFormState> {
+  const quantity = Number(text(fd, "quantity"));
+  if (!(Number.isInteger(quantity) && quantity > 0 && quantity <= MAX_STOCK_ENTRY)) {
+    return { ok: false, message: `Indique uma quantidade inteira entre 1 e ${MAX_STOCK_ENTRY}.` };
+  }
+  try {
+    await addStockEntry(text(fd, "sapProduct"), quantity);
+  } catch (err) {
+    return { ok: false, message: err instanceof Error ? err.message : "Não foi possível lançar o stock no SAP." };
+  }
+  refresh();
+  return { ok: true, message: `Entrada de ${quantity} un. lançada no SAP e copiada para o Moloni.` };
+}
+
 export type PriceFormState = { ok: boolean; message: string } | null;
 
 /** Altera o preço de venda, com IVA. */
@@ -118,5 +145,5 @@ export async function changePrice(_prev: PriceFormState, fd: FormData): Promise<
     return { ok: false, message: err instanceof Error ? err.message : "Não foi possível alterar o preço." };
   }
   refresh();
-  return { ok: true, message: "Preço alterado no SAP e no Moloni." };
+  return { ok: true, message: "Preço gravado no SAP e no Moloni." };
 }
