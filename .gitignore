@@ -51,3 +51,6 @@ next-env.d.ts
 
 # fotos de produtos enviadas pelo backoffice
 /uploads/
+
+# Cópia do SQLite antigo (antes do Supabase)
+/*.db.backup-*
