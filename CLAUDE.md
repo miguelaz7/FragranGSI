@@ -9,7 +9,7 @@ Loja online de perfumes integrada com dois ERPs:
 - Next.js (App Router) + React + Tailwind CSS
 - API Routes do Next.js = camada de integração (nenhuma credencial no browser)
 - Contas próprias da loja (`src/lib/auth.ts`): password em hash bcrypt, sessão em cookie httpOnly com o hash do token na tabela `Session`. Sem recuperação de password por agora: repõe-se em `/admin/clientes`. O Auth0 foi experimentado e removido a 07/11.
-- BD local (Prisma + SQLite/PostgreSQL): utilizadores, carrinho, mapeamento cliente SAP ↔ Moloni, log de integração
+- BD partilhada pelo grupo (Prisma + PostgreSQL no Supabase, desde 11/11): utilizadores, fichas dos produtos, carrinho, encomendas, mapeamento cliente SAP ↔ Moloni, log de integração. Antes era um SQLite por PC, e cada um via fichas, contas e encomendas diferentes. Ligação pelo **Session pooler** (porta 5432; a ligação direta do Supabase é só IPv6 e o WSL não a alcança). A Data API do Supabase está desligada e todas as tabelas têm RLS sem políticas (migração `rls_sem_data_api`); a app liga-se como dona das tabelas. As fotos (`uploads/`) continuam em cada PC.
 - Credenciais só em `.env` (no `.gitignore`)
 
 ## Serviços SAP (base: https://s20.gb.ucc.cit.tum.de/sap/opu/odata/sap/)
@@ -84,12 +84,13 @@ Notas SAP: POST exige token CSRF (GET com `x-csrf-token: fetch`, reutilizar toke
 
 ## Comandos
 - `npm run dev` — servidor de desenvolvimento (http://localhost:3000)
-- `npx prisma migrate dev --name <nome>` — aplicar alterações ao schema; depois `npx prisma generate`
-- `npx prisma db seed` — dados iniciais da ficha do `PERF001-093` (o caminho normal é editar as fichas em `/admin/produtos`)
+- Alterar o schema: **a BD é partilhada**, por isso só uma pessoa cria a migração (`npx prisma migrate dev --name <nome>`; se pedir para fazer reset, recusar: apagaria os dados de todos) e faz commit; os outros correm `npx prisma migrate deploy` + `npx prisma generate` depois do pull. O `migrate dev` não corre em terminais não interativos: escrever o SQL em `prisma/migrations/<data>_<nome>/migration.sql` (`npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script`) e aplicar com `migrate deploy`.
+- `node --env-file=.env scripts/sqlite-para-postgres.mjs <ficheiro.db>` — copia os dados de um SQLite antigo para o PostgreSQL (linhas repetidas são ignoradas).
+- `npx prisma db seed` — ficha inicial do `PERF001-093`. **Não correr na BD partilhada:** reescreve a ficha atual (que já foi editada) para todos.
 
 ## Notas técnicas
 - Next.js 16 com `cacheComponents`: dados por pedido (BD, SAP, cookies) têm de ficar dentro de `<Suspense>`; `params`/`cookies()` são assíncronos; `middleware` chama-se `proxy`.
-- Prisma 7: cliente gerado em `src/generated/prisma` (import de `@/generated/prisma/client`), SQLite via adapter better-sqlite3 (`src/lib/db.ts`).
+- Prisma 7: cliente gerado em `src/generated/prisma` (import de `@/generated/prisma/client`), PostgreSQL via adapter `@prisma/adapter-pg` (`src/lib/db.ts`).
 - Catálogo: `getCatalog()` em `src/lib/catalog.ts` (backoffice) junta SAP (produtos com prefixo `SAP_PRODUCT_PREFIX` no centro `SAP_PLANT`, stock tipo `01`, PR00) + artigos do Moloni (`fetchMoloniArticles()`, categoria Perfumes) + `ProductInfo` local; `getStoreCatalog()` (loja) usa só Moloni + `ProductInfo`. Usa `"use cache"` + `cacheLife("minutes")` + `cacheTag("catalogo")`; chamar depois de `await connection()` para não ir ao SAP no build. O stock tem de ser revalidado ao vivo no Moloni no checkout.
 - Sessão: `getCurrentUser()` em `src/lib/auth.ts` devolve o cliente com sessão ou null (só Server Actions podem criar ou apagar sessões, porque alteram cookies). Limite de 5 tentativas de login por email e IP em 15 min (em memória). Contas sem password (backoffice e demonstração) não entram.
 - Monitor de integração em `/admin/integracao`. "Tentar novamente": `withLog({ retry: { action, payload } })` guarda a ação; as funções que a repetem estão em `RETRY_HANDLERS` (`src/app/admin/integracao/actions.ts`). Existem `sync-catalogo`, `cliente-moloni`, `cliente-sap`, `cliente-moloni-dados`, `cliente-sap-dados`, `preco-sap` e `material-sap`; cada fluxo novo (fatura) deve registar a sua.
